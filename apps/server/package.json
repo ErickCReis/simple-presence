@@ -10,7 +10,6 @@
 		"start": "wrangler dev",
 		"deploy": "wrangler deploy",
 		"cf-typegen": "wrangler types --env-interface CloudflareBindings",
-		"db:local": "turso dev --db-file local.db",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
 		"db:generate": "drizzle-kit generate",

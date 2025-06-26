@@ -1,9 +1,8 @@
-import { createRouter as createTanStackRouter } from "@tanstack/react-router";
-import Loader from "./components/loader";
-import "./index.css";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { routeTree } from "./routeTree.gen";
-import { orpc, queryClient } from "./utils/orpc";
+import { createRouter as createTanStackRouter } from "@tanstack/react-router";
+import { Loader } from "@/components/loader";
+import { routeTree } from "@/routeTree.gen";
+import { orpc, queryClient } from "@/utils/orpc";
 
 export const createRouter = () => {
 	const router = createTanStackRouter({
