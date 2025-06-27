@@ -25,5 +25,8 @@
 	},
 	"overrides": {
 		"vite": "npm:rolldown-vite@latest"
+	},
+	"patchedDependencies": {
+		"hono@4.8.3": "patches/hono@4.8.3.patch"
 	}
 }

@@ -1,2 +1,6 @@
 node_modules
+.alchemy
 .DS_Store
+
+.env*
+!.env.example
