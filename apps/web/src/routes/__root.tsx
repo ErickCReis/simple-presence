@@ -49,7 +49,12 @@ function RootDocument() {
 	const isFetching = useRouterState({ select: (s) => s.isLoading });
 
 	useEffect(() => {
-		return initPresence({ appKey: "test" }).destroy;
+		return initPresence({
+			appKey: "test",
+			onCountChange: (count) => {
+				console.log("count", count);
+			},
+		}).destroy;
 	}, []);
 
 	return (

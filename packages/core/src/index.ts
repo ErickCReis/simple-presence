@@ -3,6 +3,7 @@ export interface PresenceConfig {
 	apiUrl?: string;
 	heartbeatInterval?: number;
 	debounceDelay?: number;
+	onCountChange?: (count: number) => void;
 }
 
 export interface PresenceData {
@@ -19,11 +20,12 @@ export class SimplePresence {
 	private currentStatus: "online" | "away" | "offline" = "online";
 	private isDestroyed = false;
 	private debounceTimer?: number;
+	private currentCount = 0;
 
 	constructor(config: PresenceConfig) {
 		this.config = {
 			apiUrl: process.env.SERVER_URL,
-			heartbeatInterval: 30_000,
+			heartbeatInterval: 10_000,
 			debounceDelay: 1_000,
 			...config,
 		};
@@ -128,16 +130,28 @@ export class SimplePresence {
 						"X-App-Key": this.config.appKey,
 					},
 					body: JSON.stringify({
-						input: {
-							sessionId: this.sessionId,
-							page: this.currentPage,
-							status: this.currentStatus,
-						},
+						sessionId: this.sessionId,
+						page: this.currentPage,
+						status: this.currentStatus,
 					}),
 				});
 
 				if (!response.ok) {
 					console.warn("Failed to update presence:", response.statusText);
+					return;
+				}
+
+				// Parse the response to get the count
+				const data = await response.json();
+				if (data.count !== undefined && typeof data.count === "number") {
+					const newCount = data.count;
+					if (newCount !== this.currentCount) {
+						this.currentCount = newCount;
+						// Call the callback if provided
+						if (this.config.onCountChange) {
+							this.config.onCountChange(newCount);
+						}
+					}
 				}
 			} catch (error) {
 				console.warn("Error updating presence:", error);
@@ -157,6 +171,10 @@ export class SimplePresence {
 		return this.sessionId;
 	}
 
+	public getCount(): number {
+		return this.currentCount;
+	}
+
 	public destroy(): void {
 		this.isDestroyed = true;
 
@@ -174,7 +192,7 @@ export class SimplePresence {
 			clearTimeout(this.debounceTimer);
 		}
 
-		this.updatePresence();
+		this.setStatus("offline");
 	}
 }
 
