@@ -7,23 +7,23 @@
 		"destroy": "NODE_ENV=production bun run ./alchemy.run.ts --destroy",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
-		"db:generate": "drizzle-kit generate",
-		"db:migrate": "drizzle-kit migrate"
+		"db:push:prod": "drizzle-kit push --config=drizzle-prod.config.ts",
+		"db:studio:prod": "drizzle-kit studio --config=drizzle-prod.config.ts"
 	},
 	"dependencies": {
 		"@simple-presence/core": "workspace:*",
-		"@orpc/client": "^1.5.0",
-		"@orpc/server": "^1.5.0",
-		"better-auth": "^1.2.10",
+		"@orpc/client": "^1.5.2",
+		"@orpc/server": "^1.5.2",
+		"better-auth": "^1.2.12",
 		"drizzle-orm": "^0.44.2",
-		"hono": "^4.8.2",
-		"zod": "^3.25.16"
+		"hono": "^4.8.3",
+		"zod": "^3.25.67"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250620.0",
-		"alchemy": "^0.41.0",
-		"drizzle-kit": "^0.31.2",
-		"tsc-alias": "^1.8.11",
-		"typescript": "^5.8.2"
+		"@cloudflare/workers-types": "^4.20250628.0",
+		"alchemy": "^0.41.2",
+		"drizzle-kit": "^0.31.4",
+		"tsc-alias": "^1.8.16",
+		"typescript": "^5.8.3"
 	}
 }
