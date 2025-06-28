@@ -8,7 +8,6 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { Header } from "@/components/header";
 import { Loader } from "@/components/loader";
 import { Toaster } from "@/components/ui/sonner";
 import appCss from "@/index.css?url";
@@ -37,6 +36,10 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 				rel: "stylesheet",
 				href: appCss,
 			},
+			{
+				rel: "dns-prefetch",
+				href: import.meta.env.VITE_SERVER_URL,
+			},
 		],
 	}),
 
@@ -52,10 +55,7 @@ function RootDocument() {
 				<HeadContent />
 			</head>
 			<body>
-				<div className="grid h-svh grid-rows-[auto_1fr]">
-					<Header />
-					{isFetching ? <Loader /> : <Outlet />}
-				</div>
+				{isFetching ? <Loader /> : <Outlet />}
 				<Toaster richColors />
 				<TanStackRouterDevtools position="bottom-left" />
 				<ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
