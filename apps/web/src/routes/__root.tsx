@@ -3,12 +3,11 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
 	createRootRouteWithContext,
 	HeadContent,
+	Link,
 	Outlet,
 	Scripts,
-	useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { Loader } from "@/components/loader";
 import { Toaster } from "@/components/ui/sonner";
 import appCss from "@/index.css?url";
 import type { orpc } from "@/utils/orpc";
@@ -25,10 +24,10 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 			},
 			{
 				name: "viewport",
-				content: "width=device-width, initial-scale=1",
+				content: "width=device-width, initial-scale=1, viewport-fit=cover",
 			},
 			{
-				title: "My App",
+				title: "Simple Presence",
 			},
 		],
 		links: [
@@ -47,19 +46,23 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootDocument() {
-	const isFetching = useRouterState({ select: (s) => s.isLoading });
-
 	return (
 		<html lang="en" className="dark">
 			<head>
 				<HeadContent />
 			</head>
 			<body>
-				{isFetching ? <Loader /> : <Outlet />}
+				<Outlet />
 				<Toaster richColors />
 				<TanStackRouterDevtools position="bottom-left" />
 				<ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
 				<Scripts />
+				{/* Prerender links */}
+				<div className="hidden">
+					<Link to="/" />
+					<Link to="/login" />
+					<Link to="/dashboard" />
+				</div>
 			</body>
 		</html>
 	);

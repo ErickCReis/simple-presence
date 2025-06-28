@@ -6,7 +6,6 @@ import { Website } from "alchemy/cloudflare";
 const app = await alchemy("simple-presence");
 
 const site = await Website("simple-presence", {
-	command: "bun run build",
 	spa: true,
 	assets: {
 		dist: "./.output/public",

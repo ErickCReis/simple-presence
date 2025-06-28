@@ -7,8 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export const Route = createFileRoute("/")({
 	component: LandingPage,
 	head: () => ({
-		title: "Simple Presence - Real-time User Presence for Any JavaScript App",
 		meta: [
+			{
+				title:
+					"Simple Presence - Real-time User Presence for Any JavaScript App",
+			},
 			{
 				name: "description",
 				content:
@@ -18,60 +21,6 @@ export const Route = createFileRoute("/")({
 				name: "keywords",
 				content:
 					"real-time presence, user activity, JavaScript, TypeScript, React, Vue, Angular, online users, live tracking",
-			},
-			{
-				name: "viewport",
-				content: "width=device-width, initial-scale=1, viewport-fit=cover",
-			},
-			{
-				name: "robots",
-				content: "index, follow",
-			},
-			{
-				name: "canonical",
-				content: "https://simplepresence.com",
-			},
-			// Open Graph
-			{
-				property: "og:title",
-				content:
-					"Simple Presence - Real-time User Presence for Any JavaScript App",
-			},
-			{
-				property: "og:description",
-				content:
-					"Add real-time user presence to any JavaScript application with just a few lines of code. See who's online, track user activity, and boost engagement instantly.",
-			},
-			{
-				property: "og:type",
-				content: "website",
-			},
-			{
-				property: "og:url",
-				content: "https://simplepresence.com",
-			},
-			{
-				property: "og:image",
-				content: "https://simplepresence.com/og-image.png",
-			},
-			// Twitter Card
-			{
-				name: "twitter:card",
-				content: "summary_large_image",
-			},
-			{
-				name: "twitter:title",
-				content:
-					"Simple Presence - Real-time User Presence for Any JavaScript App",
-			},
-			{
-				name: "twitter:description",
-				content:
-					"Add real-time user presence to any JavaScript application with just a few lines of code.",
-			},
-			{
-				name: "twitter:image",
-				content: "https://simplepresence.com/twitter-image.png",
 			},
 		],
 	}),
