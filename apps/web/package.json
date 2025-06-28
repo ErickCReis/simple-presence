@@ -9,7 +9,7 @@
 		"serve": "bunx serve .output/public -p 3001"
 	},
 	"dependencies": {
-		"@simple-presence/core": "workspace:*",
+		"@simple-presence/react": "workspace:*",
 		"@orpc/tanstack-query": "^1.5.2",
 		"@orpc/client": "^1.5.2",
 		"@tanstack/react-form": "^1.12.3",

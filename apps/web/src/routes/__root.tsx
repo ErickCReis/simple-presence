@@ -1,4 +1,3 @@
-import { initPresence } from "@simple-presence/core";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
@@ -9,7 +8,6 @@ import {
 	useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { useEffect } from "react";
 import { Header } from "@/components/header";
 import { Loader } from "@/components/loader";
 import { Toaster } from "@/components/ui/sonner";
@@ -47,15 +45,6 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootDocument() {
 	const isFetching = useRouterState({ select: (s) => s.isLoading });
-
-	useEffect(() => {
-		return initPresence({
-			appKey: "test",
-			onCountChange: (count) => {
-				console.log("count", count);
-			},
-		}).destroy;
-	}, []);
 
 	return (
 		<html lang="en" className="dark">

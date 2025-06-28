@@ -1,0 +1,29 @@
+{
+	"name": "@simple-presence/react",
+	"version": "0.0.1",
+	"description": "Simple Presence - React hooks for user presence tracking",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"dependencies": {
+		"@simple-presence/core": "workspace:*"
+	},
+	"peerDependencies": {
+		"react": ">=18.0.0"
+	},
+	"devDependencies": {
+		"@types/react": "^18.0.0",
+		"tsdown": "^0.12.9",
+		"typescript": "^5.8.3"
+	},
+	"scripts": {
+		"build": "tsdown --platform browser src/index.tsx",
+		"dev": "tsdown --watch --platform browser src/index.tsx"
+	}
+}

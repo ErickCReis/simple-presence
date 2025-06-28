@@ -1,7 +1,10 @@
+import { usePresenceCount } from "@simple-presence/react";
 import { Link } from "@tanstack/react-router";
 import { UserMenu } from "@/components/user-menu";
 
 export function Header() {
+	const count = usePresenceCount("test");
+
 	const links = [
 		{ to: "/", label: "Home" },
 		{ to: "/dashboard", label: "Dashboard" },
@@ -20,6 +23,7 @@ export function Header() {
 					})}
 				</nav>
 				<div className="flex items-center gap-2">
+					<span>{count}</span>
 					<UserMenu />
 				</div>
 			</div>
