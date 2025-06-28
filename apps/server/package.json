@@ -1,6 +1,5 @@
 {
-	"name": "server",
-	"main": "src/index.ts",
+	"name": "@simple-presence/server",
 	"type": "module",
 	"scripts": {
 		"dev": "bun --watch ./alchemy.run.ts --dev",

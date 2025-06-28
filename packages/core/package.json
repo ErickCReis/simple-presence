@@ -1,0 +1,22 @@
+{
+	"name": "@simple-presence/core",
+	"version": "0.0.1",
+	"description": "Simple Presence - User presence tracking component",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"scripts": {
+		"build": "tsdown --platform browser --env.SERVER_URL=https://simple-presence-server.erickcorreareis.workers.dev",
+		"dev": "tsdown --watch --platform browser --env.SERVER_URL=http://localhost:3000"
+	},
+	"devDependencies": {
+		"tsdown": "^0.12.9",
+		"typescript": "^5.8.3"
+	}
+}
