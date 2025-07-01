@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { HeroDemo } from "@/components/landing/hero-demo";
 import { QuickGuide } from "@/components/landing/quick-guide";
 import { Button } from "@/components/ui/button";
@@ -43,8 +43,8 @@ function LandingPage() {
 					<HeroDemo />
 
 					<div className="flex flex-col justify-center gap-4 sm:flex-row">
-						<Button size="lg" className="text-lg">
-							Start Free
+						<Button size="lg" className="text-lg" asChild>
+							<Link to="/dashboard">Start Free</Link>
 						</Button>
 						<Button variant="outline" size="lg" className="text-lg">
 							View Documentation

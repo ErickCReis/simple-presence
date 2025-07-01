@@ -1,5 +1,4 @@
-import type { RouterClient } from "@orpc/server";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { db, SCHEMAS } from "@/db";
@@ -32,8 +31,6 @@ export const appsRouter = {
 					description: input.description,
 					publicKey,
 					userId: context.session.user.id,
-					createdAt: new Date(),
-					updatedAt: new Date(),
 				})
 				.returning();
 
@@ -59,8 +56,10 @@ export const appsRouter = {
 				.select()
 				.from(SCHEMAS.app)
 				.where(
-					eq(SCHEMAS.app.id, input.id) &&
+					and(
+						eq(SCHEMAS.app.id, input.id),
 						eq(SCHEMAS.app.userId, context.session.user.id),
+					),
 				);
 
 			if (!app) {
@@ -84,8 +83,10 @@ export const appsRouter = {
 					updatedAt: new Date(),
 				})
 				.where(
-					eq(SCHEMAS.app.id, input.id) &&
+					and(
+						eq(SCHEMAS.app.id, input.id),
 						eq(SCHEMAS.app.userId, context.session.user.id),
+					),
 				)
 				.returning();
 
@@ -103,8 +104,10 @@ export const appsRouter = {
 			const [app] = await db
 				.delete(SCHEMAS.app)
 				.where(
-					eq(SCHEMAS.app.id, input.id) &&
+					and(
+						eq(SCHEMAS.app.id, input.id),
 						eq(SCHEMAS.app.userId, context.session.user.id),
+					),
 				)
 				.returning();
 
@@ -115,6 +118,3 @@ export const appsRouter = {
 			return { success: true };
 		}),
 };
-
-export type AppsRouter = typeof appsRouter;
-export type AppsRouterClient = RouterClient<AppsRouter>;
