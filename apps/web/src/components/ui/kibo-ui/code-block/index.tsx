@@ -71,7 +71,6 @@ import {
 	SiVuedotjs,
 	SiWebassembly,
 } from "@icons-pack/react-simple-icons";
-import { useControllableState } from "@radix-ui/react-use-controllable-state";
 import {
 	transformerNotationDiff,
 	transformerNotationErrorLevel,
@@ -80,6 +79,7 @@ import {
 	transformerNotationWordHighlight,
 } from "@shikijs/transformers";
 import { CheckIcon, CopyIcon } from "lucide-react";
+import { useControllableState } from "radix-ui";
 import type {
 	ComponentProps,
 	HTMLAttributes,

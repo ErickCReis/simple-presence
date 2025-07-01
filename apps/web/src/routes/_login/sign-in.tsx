@@ -1,22 +1,18 @@
 import { useForm } from "@tanstack/react-form";
-import { useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod/v4";
-import { Loader } from "@/components/loader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 
-export function SignInForm({
-	onSwitchToSignUp,
-}: {
-	onSwitchToSignUp: () => void;
-}) {
-	const navigate = useNavigate({
-		from: "/",
-	});
-	const { isPending } = authClient.useSession();
+export const Route = createFileRoute("/_login/sign-in")({
+	component: SignIn,
+});
+
+export function SignIn() {
+	const navigate = useNavigate({ from: "/" });
 
 	const form = useForm({
 		defaultValues: {
@@ -49,10 +45,6 @@ export function SignInForm({
 			}),
 		},
 	});
-
-	if (isPending) {
-		return <Loader />;
-	}
 
 	return (
 		<div className="mx-auto mt-10 w-full max-w-md p-6">
@@ -128,10 +120,10 @@ export function SignInForm({
 			<div className="mt-4 text-center">
 				<Button
 					variant="link"
-					onClick={onSwitchToSignUp}
+					asChild
 					className="text-indigo-600 hover:text-indigo-800"
 				>
-					Need an account? Sign Up
+					<Link to="/sign-up">Need an account? Sign Up</Link>
 				</Button>
 			</div>
 		</div>

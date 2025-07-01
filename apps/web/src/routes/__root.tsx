@@ -60,7 +60,8 @@ function RootDocument() {
 				{/* Prerender links */}
 				<div className="hidden">
 					<Link to="/" />
-					<Link to="/login" />
+					<Link to="/sign-in" />
+					<Link to="/sign-up" />
 					<Link to="/dashboard" />
 				</div>
 			</body>
