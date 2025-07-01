@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: ! */
+
 import { readFileSync } from "node:fs";
 import { defineConfig } from "drizzle-kit";
 

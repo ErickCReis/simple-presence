@@ -13,7 +13,6 @@ export default defineConfig({
 				prerender: {
 					outputPath: "/index.html",
 					crawlLinks: true,
-					retryCount: 1,
 				},
 			},
 		}),

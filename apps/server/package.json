@@ -11,12 +11,13 @@
 		"db:studio:prod": "drizzle-kit studio --config=drizzle-prod.config.ts"
 	},
 	"dependencies": {
-		"@simple-presence/core": "workspace:*",
 		"@orpc/client": "^1.5.2",
 		"@orpc/server": "^1.5.2",
+		"@simple-presence/core": "workspace:*",
 		"better-auth": "^1.2.12",
 		"drizzle-orm": "^0.44.2",
 		"hono": "^4.8.3",
+		"nanoid": "^5.1.5",
 		"zod": "^3.25.67"
 	},
 	"devDependencies": {

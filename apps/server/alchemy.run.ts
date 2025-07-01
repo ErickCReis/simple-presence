@@ -1,4 +1,5 @@
 /// <reference types="bun" />
+/** biome-ignore-all lint/style/noNonNullAssertion: ! */
 
 import alchemy from "alchemy";
 import { D1Database, DurableObjectNamespace, Worker } from "alchemy/cloudflare";

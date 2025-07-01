@@ -56,7 +56,7 @@ export class Presence extends DurableObject<Env> {
 		// Always check for expired sessions
 		this.cleanupExpiredSessions();
 
-		// use alarms to all cleanup after 10 seconcond without requests
+		// use alarms to all cleanup after 10 seconds without requests
 		const currentAlarm = await this.state.storage.getAlarm();
 		if (currentAlarm) {
 			await this.state.storage.deleteAlarm();
