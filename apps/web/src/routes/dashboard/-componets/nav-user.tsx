@@ -18,6 +18,7 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
+import { queryClient } from "@/utils/orpc";
 
 export function NavUser() {
 	const navigate = useNavigate();
@@ -74,9 +75,7 @@ export function NavUser() {
 								authClient.signOut({
 									fetchOptions: {
 										onSuccess: () => {
-											navigate({
-												to: "/",
-											});
+											navigate({ to: "/" }).then(queryClient.clear);
 										},
 									},
 								});

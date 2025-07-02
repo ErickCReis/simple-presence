@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+import { queryClient } from "@/utils/orpc";
 
 export const Route = createFileRoute("/_login/sign-up")({
 	component: SignUp,
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/_login/sign-up")({
 
 export function SignUp() {
 	const navigate = useNavigate({ from: "/" });
+	const session = authClient.useSession();
 
 	const form = useForm({
 		defaultValues: {
@@ -29,9 +31,9 @@ export function SignUp() {
 				},
 				{
 					onSuccess: () => {
-						navigate({
-							to: "/dashboard",
-						});
+						queryClient.clear();
+						session.refetch();
+						navigate({ to: "/dashboard" });
 						toast.success("Sign up successful");
 					},
 					onError: (error) => {
