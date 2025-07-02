@@ -14,7 +14,8 @@
 		"deploy": "bun run --filter '*' deploy"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.0.5"
+		"@biomejs/biome": "2.0.5",
+		"@types/bun": "^1.2.17"
 	},
 	"overrides": {
 		"vite": "npm:rolldown-vite@latest"

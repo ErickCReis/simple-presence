@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Copy, Eye, Plus, Trash2 } from "lucide-react";
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { authClient } from "@/lib/auth-client";
 import { client, orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/dashboard/")({
@@ -31,9 +30,7 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 function RouteComponent() {
-	const navigate = Route.useNavigate();
 	const queryClient = useQueryClient();
-	const { data: session, isPending } = authClient.useSession();
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 	const [newAppName, setNewAppName] = useState("");
 	const [newAppDescription, setNewAppDescription] = useState("");
@@ -42,6 +39,8 @@ function RouteComponent() {
 
 	// Query for apps
 	const appsQuery = useQuery(orpc.apps.list.queryOptions());
+
+	console.log(appsQuery.data, orpc.apps.list.queryOptions());
 
 	// Mutation for creating apps
 	const createAppMutation = useMutation({
@@ -76,14 +75,6 @@ function RouteComponent() {
 		},
 	});
 
-	useEffect(() => {
-		if (!session && !isPending) {
-			navigate({
-				to: "/sign-in",
-			});
-		}
-	}, [session, isPending, navigate]);
-
 	const handleCreateApp = () => {
 		if (!newAppName.trim()) {
 			toast.error("App name is required");
@@ -111,27 +102,10 @@ function RouteComponent() {
 		toast.success("Public key copied to clipboard!");
 	};
 
-	if (isPending) {
-		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<div className="text-center">
-					<div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-primary border-b-2" />
-					<p>Loading...</p>
-				</div>
-			</div>
-		);
-	}
-
 	return (
-		<div className="container mx-auto max-w-6xl px-4 py-8">
+		<div>
 			{/* Header */}
-			<div className="mb-8 flex items-center justify-between">
-				<div>
-					<h1 className="font-bold text-3xl">Dashboard</h1>
-					<p className="text-muted-foreground">
-						Welcome back, {session?.user.name}
-					</p>
-				</div>
+			<div className="mb-8 flex items-center justify-end">
 				<Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
 					<DialogTrigger asChild>
 						<Button>
@@ -290,7 +264,7 @@ function RouteComponent() {
 					<h2 className="mb-6 font-semibold text-2xl">Overview</h2>
 					<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
 						<Card>
-							<CardContent className="pt-6">
+							<CardContent>
 								<div className="flex items-center justify-between">
 									<div>
 										<p className="font-medium text-muted-foreground text-sm">
@@ -307,7 +281,7 @@ function RouteComponent() {
 							</CardContent>
 						</Card>
 						<Card>
-							<CardContent className="pt-6">
+							<CardContent>
 								<div className="flex items-center justify-between">
 									<div>
 										<p className="font-medium text-muted-foreground text-sm">
@@ -322,7 +296,7 @@ function RouteComponent() {
 							</CardContent>
 						</Card>
 						<Card>
-							<CardContent className="pt-6">
+							<CardContent>
 								<div className="flex items-center justify-between">
 									<div>
 										<p className="font-medium text-muted-foreground text-sm">

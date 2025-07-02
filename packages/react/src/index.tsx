@@ -38,6 +38,7 @@ export function usePresenceCount(
 		options.apiUrl,
 		options.heartbeatInterval,
 		options.debounceDelay,
+		options,
 	]);
 
 	return count;

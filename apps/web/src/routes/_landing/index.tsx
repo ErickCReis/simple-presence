@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { HeroDemo } from "@/components/landing/hero-demo";
-import { QuickGuide } from "@/components/landing/quick-guide";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { HeroDemo } from "@/routes/_landing/-components/hero-demo";
+import { QuickGuide } from "@/routes/_landing/-components/quick-guide";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_landing/")({
 	component: LandingPage,
 	head: () => ({
 		meta: [
