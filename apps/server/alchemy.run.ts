@@ -21,7 +21,6 @@ export const server = await Worker("simple-presence-server", {
 	dev: {
 		port: 3000,
 	},
-	compatibilityFlags: ["nodejs_compat"],
 	bindings: {
 		DB: db,
 		PRESENCE: presence,

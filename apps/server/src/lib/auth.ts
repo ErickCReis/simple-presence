@@ -4,6 +4,51 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db";
 import * as schema from "@/db/schema/auth";
 
+function arrayBufferToHex(buffer: ArrayBuffer): string {
+	return Array.from(new Uint8Array(buffer))
+		.map((b) => b.toString(16).padStart(2, "0"))
+		.join("");
+}
+
+function hexToArrayBuffer(hex: string): ArrayBuffer {
+	const bytes = new Uint8Array(hex.length / 2);
+	for (let i = 0; i < hex.length; i += 2) {
+		bytes[i / 2] = Number.parseInt(hex.substring(i, i + 2), 16);
+	}
+	return bytes.buffer;
+}
+
+async function hashPassword(
+	password: string,
+	salt: ArrayBuffer,
+): Promise<string> {
+	const encoder = new TextEncoder();
+	const passwordBuffer = encoder.encode(password);
+
+	// Import the password as a key
+	const key = await crypto.subtle.importKey(
+		"raw",
+		passwordBuffer,
+		{ name: "PBKDF2" },
+		false,
+		["deriveBits"],
+	);
+
+	// Derive key using PBKDF2 with 100,000 iterations
+	const derivedBits = await crypto.subtle.deriveBits(
+		{
+			name: "PBKDF2",
+			salt: salt,
+			iterations: 100000,
+			hash: "SHA-256",
+		},
+		key,
+		256, // 32 bytes = 256 bits
+	);
+
+	return arrayBufferToHex(derivedBits);
+}
+
 export const auth = betterAuth({
 	database: drizzleAdapter(db, {
 		provider: "sqlite",
@@ -16,41 +61,18 @@ export const auth = betterAuth({
 		enabled: true,
 		password: {
 			hash: async (password) => {
-				// Use a lower cost factor for better performance in Cloudflare Workers
-				// Default Node.js implementation but with lower cost
-				const crypto = require("node:crypto");
-				const salt = crypto.randomBytes(16);
-				// Use a cost factor of 8 instead of the default 16
-				return new Promise((resolve, reject) => {
-					crypto.scrypt(
-						password,
-						salt,
-						64,
-						{ N: 8 },
-						(err: Error | null, derivedKey: Buffer) => {
-							if (err) reject(err);
-							resolve(`${salt.toString("hex")}:${derivedKey.toString("hex")}`);
-						},
-					);
-				});
+				const salt = crypto.getRandomValues(new Uint8Array(16));
+				const hash = await hashPassword(password, salt.buffer);
+
+				return `${arrayBufferToHex(salt.buffer)}:${hash}`;
 			},
 			verify: async ({ hash, password }) => {
-				// Custom verification function for the optimized password hash
-				const crypto = require("node:crypto");
-				const [salt, key] = hash.split(":");
-				// Use a cost factor of 8 instead of the default 16
-				return new Promise((resolve, reject) => {
-					crypto.scrypt(
-						password,
-						Buffer.from(salt, "hex"),
-						64,
-						{ N: 8 },
-						(err: Error | null, derivedKey: Buffer) => {
-							if (err) reject(err);
-							resolve(key === derivedKey.toString("hex"));
-						},
-					);
-				});
+				const [saltHex, storedHashHex] = hash.split(":");
+
+				const salt = hexToArrayBuffer(saltHex);
+				const computedHash = await hashPassword(password, salt);
+
+				return computedHash === storedHashHex;
 			},
 		},
 	},

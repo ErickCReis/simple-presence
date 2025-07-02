@@ -22,8 +22,9 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250628.0",
-		"alchemy": "^0.41.2",
+		"alchemy": "^0.43.0",
 		"drizzle-kit": "^0.31.4",
+		"miniflare": "^4.20250617.4",
 		"tsc-alias": "^1.8.16",
 		"typescript": "^5.8.3"
 	}
