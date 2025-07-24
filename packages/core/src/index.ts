@@ -24,10 +24,10 @@ export class SimplePresence {
 
 	constructor(config: PresenceConfig) {
 		this.config = {
+			appKey: config.appKey,
 			apiUrl: process.env.SERVER_URL,
-			heartbeatInterval: 10_000,
-			debounceDelay: 1_000,
-			...config,
+			heartbeatInterval: config.heartbeatInterval ?? 10_000,
+			debounceDelay: config.debounceDelay ?? 1_000,
 		};
 
 		this.sessionId = this.generateSessionId();

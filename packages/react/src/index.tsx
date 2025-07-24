@@ -21,7 +21,9 @@ export function usePresenceCount(
 		const presence = new SimplePresence({
 			appKey,
 			onCountChange: setCount,
-			...options,
+			apiUrl: options.apiUrl,
+			heartbeatInterval: options.heartbeatInterval,
+			debounceDelay: options.debounceDelay,
 		});
 
 		presenceRef.current = presence;
@@ -38,8 +40,22 @@ export function usePresenceCount(
 		options.apiUrl,
 		options.heartbeatInterval,
 		options.debounceDelay,
-		options,
 	]);
+
+	useEffect(() => {
+		const interval = setInterval(
+			() => {
+				if (!presenceRef.current) {
+					return;
+				}
+
+				setCount(presenceRef.current.getCount());
+			},
+			options.heartbeatInterval ?? 10_000 / 10,
+		);
+
+		return () => clearInterval(interval);
+	}, [options.heartbeatInterval]);
 
 	return count;
 }

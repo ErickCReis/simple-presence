@@ -1,13 +1,12 @@
 diff --git a/dist/utils/color.js b/dist/utils/color.js
-index b34c49f44e56148f2749432bfc68b48ae72bbeb2..6ec49e8fa901ce67e53810b3c8092edfbe302135 100644
+index b34c49f44e56148f2749432bfc68b48ae72bbeb2..9341578ea8dd1bf48f2e753d63c803ea5ad7842a 100644
 --- a/dist/utils/color.js
 +++ b/dist/utils/color.js
-@@ -9,7 +9,8 @@ async function getColorEnabledAsync() {
+@@ -9,7 +9,7 @@ async function getColorEnabledAsync() {
    const cfWorkers = "cloudflare:workers";
    const isNoColor = navigator !== void 0 && navigator.userAgent === "Cloudflare-Workers" ? await (async () => {
      try {
 -      return "NO_COLOR" in ((await import(cfWorkers)).env ?? {});
-+      // return "NO_COLOR" in ((await import(cfWorkers)).env ?? {});
 +      return false;
      } catch {
        return false;

@@ -7,15 +7,15 @@ export function HeroDemo() {
 
 	return (
 		<div className="mx-auto w-full max-w-4xl p-6">
-			<Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 dark:border-blue-800 dark:from-blue-950 dark:to-indigo-950">
-				<CardHeader className="pb-4 text-center">
+			<Card className="gap-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 dark:border-blue-800 dark:from-blue-950 dark:to-indigo-950">
+				<CardHeader className="text-center">
 					<CardTitle className="font-bold text-2xl text-blue-600 dark:text-blue-400">
 						Live Demo
 					</CardTitle>
 				</CardHeader>
 				<CardContent className="text-center">
 					<div className="mb-4">
-						<div className="mb-2 font-bold text-4xl text-blue-600 dark:text-blue-400">
+						<div className="font-bold text-4xl text-blue-600 dark:text-blue-400">
 							<AnimatedCounter value={count} duration={800} showCommas={true} />
 						</div>
 						<div className="text-lg text-muted-foreground">

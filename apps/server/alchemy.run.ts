@@ -9,7 +9,7 @@ const app = await alchemy("simple-presence", {
 	password: process.env.SECRET_PASSPHRASE,
 });
 
-const presence = new DurableObjectNamespace<Presence>("presence", {
+const presence = DurableObjectNamespace<Presence>("presence", {
 	className: "Presence",
 	sqlite: true,
 });
@@ -18,6 +18,7 @@ const db = await D1Database("simple-presence-db");
 
 export const server = await Worker("simple-presence-server", {
 	entrypoint: "./src/index.ts",
+	compatibility: "node",
 	dev: {
 		port: 3000,
 	},
