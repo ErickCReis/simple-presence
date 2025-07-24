@@ -97,7 +97,7 @@ import {
 	type BundledLanguage,
 	type CodeOptionsMultipleThemes,
 	codeToHtml,
-} from "shiki";
+} from "shiki/bundle/web";
 import { Button } from "@/components/ui/button";
 import {
 	Select,

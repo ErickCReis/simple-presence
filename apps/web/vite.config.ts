@@ -1,5 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import viteReact from "@vitejs/plugin-react-oxc";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
@@ -8,13 +9,12 @@ export default defineConfig({
 		tsconfigPaths(),
 		tailwindcss(),
 		tanstackStart({
-			spa: {
+			prerender: {
 				enabled: true,
-				prerender: {
-					outputPath: "/index.html",
-					crawlLinks: true,
-				},
+				crawlLinks: true,
 			},
+			customViteReactPlugin: true,
 		}),
+		viteReact(),
 	],
 });
