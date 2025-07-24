@@ -42,20 +42,5 @@ export function usePresenceCount(
 		options.debounceDelay,
 	]);
 
-	useEffect(() => {
-		const interval = setInterval(
-			() => {
-				if (!presenceRef.current) {
-					return;
-				}
-
-				setCount(presenceRef.current.getCount());
-			},
-			options.heartbeatInterval ?? 10_000 / 10,
-		);
-
-		return () => clearInterval(interval);
-	}, [options.heartbeatInterval]);
-
 	return count;
 }
