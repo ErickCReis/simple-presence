@@ -3,7 +3,9 @@ import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function HeroDemo() {
-	const count = usePresenceCount("demo");
+	const count = usePresenceCount("demo", {
+		apiUrl: import.meta.env.VITE_SERVER_URL,
+	});
 
 	return (
 		<div className="mx-auto w-full max-w-4xl p-6">

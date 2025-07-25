@@ -10,7 +10,7 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "@/components/ui/sonner";
 import appCss from "@/index.css?url";
-import type { orpc } from "@/utils/orpc";
+import type { orpc } from "@/lib/orpc";
 export interface RouterAppContext {
 	orpc: typeof orpc;
 	queryClient: QueryClient;

@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { client, orpc } from "@/utils/orpc";
+import { client, orpc } from "@/lib/orpc";
 
 export const Route = createFileRoute("/dashboard/")({
 	component: RouteComponent,
@@ -39,8 +39,6 @@ function RouteComponent() {
 
 	// Query for apps
 	const appsQuery = useQuery(orpc.apps.list.queryOptions());
-
-	console.log(appsQuery.data, orpc.apps.list.queryOptions());
 
 	// Mutation for creating apps
 	const createAppMutation = useMutation({

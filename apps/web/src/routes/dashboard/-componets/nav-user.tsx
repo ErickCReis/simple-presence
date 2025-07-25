@@ -18,7 +18,7 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
-import { queryClient } from "@/utils/orpc";
+import { queryClient } from "@/lib/orpc";
 
 export function NavUser() {
 	const navigate = useNavigate();

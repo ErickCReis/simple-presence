@@ -1,4 +1,4 @@
-import type { BundledLanguage } from "shiki";
+import type { BundledLanguage } from "shiki/bundle/web";
 import { toast } from "sonner";
 import {
 	CodeBlock,
