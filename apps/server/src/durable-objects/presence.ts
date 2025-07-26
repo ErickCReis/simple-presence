@@ -1,5 +1,41 @@
 import { DurableObject } from "cloudflare:workers";
+import { EventPublisher, eventIterator, os } from "@orpc/server";
+
+import { RPCHandler } from "@orpc/server/websocket";
 import type { PresenceData } from "@simple-presence/core";
+import z from "zod/v3";
+
+const publisher = new EventPublisher<Record<string, number>>();
+
+const procedure = os.$context<{
+	ws: WebSocket;
+	do: Presence;
+}>();
+
+export const router = {
+	on: procedure.input(z.object({ page: z.string() })).handler(async function* ({
+		input,
+		signal,
+	}) {
+		for await (const count of publisher.subscribe(input.page, { signal })) {
+			yield count;
+		}
+	}),
+	update: procedure
+		.input(
+			z.object({
+				sessionId: z.string(),
+				page: z.string(),
+				status: z.enum(["online", "away", "offline"]),
+			}),
+		)
+		.handler(async ({ context, input }) => {
+			const count = await context.do.update(input);
+			publisher.publish(input.page, count);
+		}),
+};
+
+const handler = new RPCHandler(router);
 
 interface SessionInfo {
 	sessionId: string;
@@ -15,19 +51,44 @@ interface PageCount {
 }
 
 export class Presence extends DurableObject<Env> {
-	private state: DurableObjectState;
+	state: DurableObjectState;
 
 	// Local maps for session management
-	private sessions: Map<string, SessionInfo> = new Map();
-	private pages: Map<string, PageCount> = new Map();
-	private sessionTTLs: Map<string, number> = new Map();
+	sessions: Map<string, SessionInfo> = new Map();
+	pages: Map<string, PageCount> = new Map();
+	sessionTTLs: Map<string, number> = new Map();
 
 	// TTL configuration
-	private readonly TTL_DURATION = 10_000; // 10 seconds in milliseconds
+	readonly TTL_DURATION = 10_000; // 10 seconds in milliseconds
 
 	constructor(state: DurableObjectState, env: Env) {
 		super(state, env);
 		this.state = state;
+	}
+
+	fetch(request: Request): Response | Promise<Response> {
+		const { "0": client, "1": server } = new WebSocketPair();
+
+		this.state.acceptWebSocket(server);
+
+		return new Response(null, {
+			status: 101,
+			webSocket: client,
+		});
+	}
+
+	async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+		console.log("message", message);
+		await handler.message(ws, message, {
+			context: {
+				ws,
+				do: this,
+			},
+		});
+	}
+
+	async webSocketClose(ws: WebSocket) {
+		handler.close(ws);
 	}
 
 	async update(presence: PresenceData): Promise<number> {

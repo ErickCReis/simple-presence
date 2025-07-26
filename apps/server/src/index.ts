@@ -3,6 +3,12 @@ import { app } from "./app";
 
 app.get("/", (c) => c.text("OK"));
 
+app.get("/teste", (c) => {
+	const id = env.PRESENCE.idFromName("teste");
+	const presenceApp = env.PRESENCE.get(id);
+	return presenceApp.fetch(c.req.raw);
+});
+
 app.post("/presence", async (c) => {
 	const appKey = c.req.header("X-App-Key");
 	if (!appKey) {
