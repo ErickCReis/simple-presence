@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function HeroDemo() {
 	const count = usePresenceCount("demo", {
+		appKey: "appkey",
 		apiUrl: import.meta.env.VITE_SERVER_URL,
 	});
 

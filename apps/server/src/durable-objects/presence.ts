@@ -12,24 +12,24 @@ const procedure = os.$context<{
 }>();
 
 export const router = {
-	on: procedure.input(z.object({ page: z.string() })).handler(async function* ({
+	on: procedure.input(z.object({ tag: z.string() })).handler(async function* ({
 		input,
 		signal,
 	}) {
-		for await (const count of publisher.subscribe(input.page, { signal })) {
+		for await (const count of publisher.subscribe(input.tag, { signal })) {
 			yield count;
 		}
 	}),
 	update: procedure
 		.input(
 			z.object({
-				page: z.string(),
-				status: z.enum(["online", "away", "offline"]),
+				tag: z.string(),
+				status: z.enum(["online", "away"]),
 			}),
 		)
 		.handler(async ({ context, input }) => {
 			const count = await context.do.update(context.ws, input);
-			publisher.publish(input.page, count);
+			publisher.publish(input.tag, count);
 		}),
 };
 
@@ -39,9 +39,8 @@ export type PresenceRouterClient = RouterClient<PresenceRouter>;
 
 const handler = new RPCHandler(router);
 
-interface PageCount {
-	page: string;
-	count: number;
+interface TagInfo {
+	name: string;
 	sessions: Set<WebSocket>;
 }
 
@@ -50,7 +49,7 @@ export class Presence extends DurableObject<Env> {
 
 	// Local maps for session management using WebSocket as key
 	sessions: Map<WebSocket, PresenceData> = new Map();
-	pages: Map<string, PageCount> = new Map();
+	tags: Map<string, TagInfo> = new Map();
 
 	constructor(state: DurableObjectState, env: Env) {
 		super(state, env);
@@ -69,74 +68,53 @@ export class Presence extends DurableObject<Env> {
 	}
 
 	async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
-		await handler.message(ws, message, {
-			context: { ws, do: this },
-		});
+		await handler.message(ws, message, { context: { ws, do: this } });
 	}
 
 	async webSocketClose(ws: WebSocket) {
 		handler.close(ws);
-		// Clean up session when WebSocket closes
 		this.removeSession(ws);
 	}
 
-	async update(ws: WebSocket, presence: PresenceData): Promise<number> {
-		const { page, status } = presence;
-
-		// Handle different status scenarios
-		if (status === "offline" || status === "away") {
-			// Remove session
-			this.removeSession(ws);
-		} else if (status === "online") {
-			// Remove session from current page if it exists
-			this.removeSession(ws);
-
-			// Add session to the new page
-			this.addSession(ws, page, status);
+	async update(ws: WebSocket, presence: PresenceData) {
+		this.removeSession(ws);
+		if (presence.status === "online") {
+			this.addSession(ws, presence);
 		}
 
-		// Return the count for the specified page
-		const pageCount = this.pages.get(page);
-		return pageCount ? pageCount.count : 0;
+		const tagInfo = this.tags.get(presence.tag);
+		return tagInfo ? tagInfo.sessions.size : 0;
 	}
 
-	private removeSession(ws: WebSocket): void {
+	private removeSession(ws: WebSocket) {
 		const sessionInfo = this.sessions.get(ws);
 		if (!sessionInfo) return;
 
-		// Remove from sessions map
 		this.sessions.delete(ws);
 
-		// Remove from page
-		const pageCount = this.pages.get(sessionInfo.page);
-		if (pageCount) {
-			pageCount.sessions.delete(ws);
-			pageCount.count = pageCount.sessions.size;
+		const tagInfo = this.tags.get(sessionInfo.tag);
+		if (tagInfo) {
+			tagInfo.sessions.delete(ws);
 
-			// Remove page if no sessions left
-			if (pageCount.count === 0) {
-				this.pages.delete(sessionInfo.page);
+			// Remove tag if no sessions left
+			if (tagInfo.sessions.size === 0) {
+				this.tags.delete(sessionInfo.tag);
 			}
 		}
 	}
 
-	private addSession(
-		ws: WebSocket,
-		page: string,
-		status: "online" | "away" | "offline",
-	): void {
+	private addSession(ws: WebSocket, presence: PresenceData) {
 		// Update session info
-		this.sessions.set(ws, { page, status });
+		this.sessions.set(ws, presence);
 
-		// Get or create page count
-		let pageCount = this.pages.get(page);
-		if (!pageCount) {
-			pageCount = { page, count: 0, sessions: new Set() };
-			this.pages.set(page, pageCount);
+		// Get or create tag info
+		let tagInfo = this.tags.get(presence.tag);
+		if (!tagInfo) {
+			tagInfo = { name: presence.tag, sessions: new Set() };
+			this.tags.set(presence.tag, tagInfo);
 		}
 
-		// Add session to page
-		pageCount.sessions.add(ws);
-		pageCount.count = pageCount.sessions.size;
+		// Add session to tag
+		tagInfo.sessions.add(ws);
 	}
 }

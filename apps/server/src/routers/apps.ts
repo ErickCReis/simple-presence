@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { db, SCHEMAS } from "@/db";
 import { protectedProcedure } from "@/lib/orpc";
 
