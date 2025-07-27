@@ -48,7 +48,7 @@ export class SimplePresence {
 
 	private async setupWebSocket(): Promise<void> {
 		this.websocket = new WebSocket(
-			`${this.config.apiUrl}/presence/${this.config.appKey}`,
+			`${this.config.apiUrl}/${this.config.appKey}`,
 		);
 
 		await new Promise<void>((resolve, reject) => {
