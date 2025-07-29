@@ -1,7 +1,7 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { Loader } from "@/components/loader";
-import { orpc, queryClient } from "@/lib/orpc";
+import { queryClient } from "@/lib/orpc";
 import { routeTree } from "@/routeTree.gen";
 
 export const createRouter = () => {
@@ -9,7 +9,6 @@ export const createRouter = () => {
 		routeTree,
 		scrollRestoration: true,
 		defaultPreloadStaleTime: 0,
-		context: { orpc, queryClient },
 		defaultPendingComponent: () => <Loader />,
 		defaultNotFoundComponent: () => <div>Not Found</div>,
 		Wrap: ({ children }) => (

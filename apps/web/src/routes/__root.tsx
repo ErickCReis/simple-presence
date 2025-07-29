@@ -1,7 +1,6 @@
-import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
-	createRootRouteWithContext,
+	createRootRoute,
 	HeadContent,
 	Link,
 	Outlet,
@@ -10,13 +9,8 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "@/components/ui/sonner";
 import appCss from "@/index.css?url";
-import type { orpc } from "@/lib/orpc";
-export interface RouterAppContext {
-	orpc: typeof orpc;
-	queryClient: QueryClient;
-}
 
-export const Route = createRootRouteWithContext<RouterAppContext>()({
+export const Route = createRootRoute({
 	head: () => ({
 		meta: [
 			{

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Copy, Eye, Plus, Trash2 } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { client, orpc } from "@/lib/orpc";
+import { oprc, orpcUtils } from "@/lib/orpc";
 
 export const Route = createFileRoute("/dashboard/")({
 	component: RouteComponent,
@@ -38,16 +38,18 @@ function RouteComponent() {
 	const appDescriptionId = useId();
 
 	// Query for apps
-	const appsQuery = useQuery(orpc.apps.list.queryOptions());
+	const appsQuery = useQuery(orpcUtils.apps.list.queryOptions());
 
 	// Mutation for creating apps
 	const createAppMutation = useMutation({
 		mutationFn: async (data: { name: string; description?: string }) => {
-			const result = await client.apps.create(data);
+			const result = await oprc.apps.create(data);
 			return result;
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: orpc.apps.list.queryKey() });
+			queryClient.invalidateQueries({
+				queryKey: orpcUtils.apps.list.queryKey(),
+			});
 			setIsCreateDialogOpen(false);
 			setNewAppName("");
 			setNewAppDescription("");
@@ -61,11 +63,13 @@ function RouteComponent() {
 	// Mutation for deleting apps
 	const deleteAppMutation = useMutation({
 		mutationFn: async (data: { id: string }) => {
-			const result = await client.apps.delete(data);
+			const result = await oprc.apps.delete(data);
 			return result;
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: orpc.apps.list.queryKey() });
+			queryClient.invalidateQueries({
+				queryKey: orpcUtils.apps.list.queryKey(),
+			});
 			toast.success("App deleted successfully!");
 		},
 		onError: (error) => {
@@ -218,10 +222,12 @@ function RouteComponent() {
 											variant="outline"
 											size="sm"
 											className="flex-1"
-											onClick={() => copyToClipboard(app.publicKey)}
+											asChild
 										>
-											<Eye className="mr-1 h-3 w-3" />
-											View Details
+											<Link to="/dashboard/$appId" params={{ appId: app.id }}>
+												<Eye className="mr-1 h-3 w-3" />
+												View Details
+											</Link>
 										</Button>
 										<Button
 											variant="outline"

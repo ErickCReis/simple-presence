@@ -117,4 +117,13 @@ export class Presence extends DurableObject<Env> {
 		// Add session to tag
 		tagInfo.sessions.add(ws);
 	}
+
+	public getTags() {
+		return [
+			...this.tags.values().map((tag) => ({
+				name: tag.name,
+				sessions: tag.sessions.size,
+			})),
+		];
+	}
 }

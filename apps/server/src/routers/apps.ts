@@ -1,3 +1,4 @@
+import { env } from "cloudflare:workers";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod/v3";
@@ -116,5 +117,33 @@ export const appsRouter = {
 			}
 
 			return { success: true };
+		}),
+
+	watch: protectedProcedure
+		.input(z.object({ id: z.string() }))
+		.handler(async function* ({ input, context }) {
+			const [app] = await db
+				.select()
+				.from(SCHEMAS.app)
+				.where(
+					and(
+						eq(SCHEMAS.app.id, input.id),
+						eq(SCHEMAS.app.userId, context.session.user.id),
+					),
+				);
+
+			if (!app) {
+				throw new Error("App not found");
+			}
+
+			while (true) {
+				const id = env.PRESENCE.idFromName(app.publicKey);
+				const presenceDO = env.PRESENCE.get(id);
+				const tags = await presenceDO.getTags();
+
+				yield tags as { name: string; sessions: number }[];
+
+				await new Promise((resolve) => setTimeout(resolve, 1000));
+			}
 		}),
 };
