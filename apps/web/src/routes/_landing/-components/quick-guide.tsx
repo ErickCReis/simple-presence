@@ -1,4 +1,3 @@
-import type { BundledLanguage } from "shiki/bundle/web";
 import { toast } from "sonner";
 import {
 	CodeBlock,
@@ -15,6 +14,7 @@ import {
 	CodeBlockSelectTrigger,
 	CodeBlockSelectValue,
 } from "@/components/ui/kibo-ui/code-block";
+import type { BundledLanguage } from "@/components/ui/kibo-ui/code-block/shiki.bundle";
 
 const code = [
 	{
