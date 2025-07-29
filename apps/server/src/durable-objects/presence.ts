@@ -50,6 +50,7 @@ export class Presence extends DurableObject<Env> {
 	// Local maps for session management using WebSocket as key
 	sessions: Map<WebSocket, PresenceData> = new Map();
 	tags: Map<string, TagInfo> = new Map();
+	lastUpdated: number = Date.now();
 
 	constructor(state: DurableObjectState, env: Env) {
 		super(state, env);
@@ -81,6 +82,8 @@ export class Presence extends DurableObject<Env> {
 		if (presence.status === "online") {
 			this.addSession(ws, presence);
 		}
+
+		this.lastUpdated = Date.now();
 
 		const tagInfo = this.tags.get(presence.tag);
 		return tagInfo ? tagInfo.sessions.size : 0;
@@ -118,12 +121,15 @@ export class Presence extends DurableObject<Env> {
 		tagInfo.sessions.add(ws);
 	}
 
-	public getTags() {
-		return [
-			...this.tags.values().map((tag) => ({
-				name: tag.name,
-				sessions: tag.sessions.size,
-			})),
-		];
+	public getStats() {
+		return {
+			lastUpdated: this.lastUpdated,
+			tags: [
+				...this.tags.values().map((tag) => ({
+					name: tag.name,
+					sessions: tag.sessions.size,
+				})),
+			],
+		};
 	}
 }

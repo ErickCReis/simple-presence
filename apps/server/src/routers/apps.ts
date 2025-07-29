@@ -136,12 +136,17 @@ export const appsRouter = {
 				throw new Error("App not found");
 			}
 
+			let lastUpdated = 0;
+
 			while (true) {
 				const id = env.PRESENCE.idFromName(app.publicKey);
 				const presenceDO = env.PRESENCE.get(id);
-				const tags = await presenceDO.getTags();
+				const stats = await presenceDO.getStats();
 
-				yield tags as { name: string; sessions: number }[];
+				if (stats.lastUpdated > lastUpdated) {
+					lastUpdated = stats.lastUpdated;
+					yield stats.tags;
+				}
 
 				await new Promise((resolve) => setTimeout(resolve, 1000));
 			}
