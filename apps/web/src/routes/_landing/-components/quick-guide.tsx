@@ -18,15 +18,31 @@ import {
 
 const code = [
 	{
+		language: "tsx",
+		filename: "React.tsx",
+		code: `import { usePresenceCount } from "@simple-presence/react";
+	
+function OnlineUsers() {
+	const count = usePresenceCount("page-1", {
+		appKey: "your-app-key",
+	});
+	
+	return (
+		<div>
+			<span>👥 {count} users online</span>
+		</div>
+	);
+}`,
+	},
+	{
 		language: "js",
 		filename: "Agnostic.js",
 		code: `import { SimplePresence } from "@simple-presence/core";
 
 // Initialize presence tracking
 const presence = new SimplePresence({
+	tag: "page-1",
 	appKey: "your-app-key",
-	heartbeatInterval: 10000, // optional, default: 10s
-	debounceDelay: 1000, // optional, default: 1s
 	onCountChange: (count) => {
 		console.log("Online users:", count);
 	},
@@ -35,24 +51,6 @@ const presence = new SimplePresence({
 
 // Clean up when done
 presence.destroy();`,
-	},
-	{
-		language: "tsx",
-		filename: "React.tsx",
-		code: `import { usePresenceCount } from "@simple-presence/react";
-
-function OnlineUsers() {
-	const count = usePresenceCount("your-app-key", {
-		heartbeatInterval: 10000, // optional
-		debounceDelay: 1000, // optional
-	});
-
-	return (
-		<div>
-			<span>👥 {count} users online</span>
-		</div>
-	);
-}`,
 	},
 ];
 

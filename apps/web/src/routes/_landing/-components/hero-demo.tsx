@@ -3,7 +3,7 @@ import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function HeroDemo() {
-	const count = usePresenceCount("demo", {
+	const count = usePresenceCount("landing", {
 		appKey: "tmV0CdM-q35gD5-MMR1ezJ007N-vcruF",
 		apiUrl: import.meta.env.VITE_SERVER_URL,
 	});
