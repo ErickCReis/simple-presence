@@ -9,7 +9,7 @@
 	],
 	"scripts": {
 		"check": "biome check --write --unsafe .",
-		"build": "bun run --filter '*' build",
+		"build": "bun run --filter ./packages/core build && bun run --filter ./packages/react build && bun run --filter ./apps/web build",
 		"dev": "bun run --filter '*' dev",
 		"deploy": "bun run --filter '*' deploy"
 	},
