@@ -1,3 +1,4 @@
+import { usePresenceCount } from "@simple-presence/react";
 import {
 	createFileRoute,
 	Link,
@@ -19,6 +20,11 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function RouteComponent() {
+	usePresenceCount("dashboard", {
+		appKey: "tmV0CdM-q35gD5-MMR1ezJ007N-vcruF",
+		apiUrl: import.meta.env.VITE_SERVER_URL,
+	});
+
 	const navigate = useNavigate();
 	const session = authClient.useSession();
 

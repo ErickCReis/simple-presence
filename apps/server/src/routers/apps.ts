@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import { eventIterator } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod/v3";
@@ -121,6 +122,22 @@ export const appsRouter = {
 
 	watch: protectedProcedure
 		.input(z.object({ id: z.string() }))
+		.output(
+			eventIterator(
+				z.object({
+					tags: z.array(z.object({ name: z.string(), sessions: z.number() })),
+					events: z.array(
+						z.object({
+							id: z.number(),
+							type: z.string(),
+							timestamp: z.date(),
+							tag: z.string().nullable(),
+							status: z.string().nullable(),
+						}),
+					),
+				}),
+			),
+		)
 		.handler(async function* ({ input, context }) {
 			const [app] = await db
 				.select()
@@ -141,11 +158,14 @@ export const appsRouter = {
 			while (true) {
 				const id = env.PRESENCE.idFromName(app.publicKey);
 				const presenceDO = env.PRESENCE.get(id);
-				const stats = await presenceDO.getStats();
+				const [stats, events] = await Promise.all([
+					presenceDO.getStats(),
+					presenceDO.getEvents(),
+				]);
 
 				if (stats.lastUpdated > lastUpdated) {
 					lastUpdated = stats.lastUpdated;
-					yield stats.tags;
+					yield { tags: stats.tags, events };
 				}
 
 				await new Promise((resolve) => setTimeout(resolve, 1000));

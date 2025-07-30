@@ -20,6 +20,7 @@
 		"typescript": "^5.8.3"
 	},
 	"dependencies": {
-		"@orpc/client": "^1.7.4"
+		"@orpc/client": "^1.7.4",
+		"partysocket": "^1.1.4"
 	}
 }

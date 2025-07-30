@@ -1,41 +1,16 @@
 import { DurableObject } from "cloudflare:workers";
-import { EventPublisher, os, type RouterClient } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/websocket";
 import type { PresenceData } from "@simple-presence/core";
-import z from "zod/v3";
-
-const publisher = new EventPublisher<Record<string, number>>();
-
-const procedure = os.$context<{
-	ws: WebSocket;
-	do: Presence;
-}>();
-
-export const router = {
-	on: procedure.input(z.object({ tag: z.string() })).handler(async function* ({
-		input,
-		signal,
-	}) {
-		for await (const count of publisher.subscribe(input.tag, { signal })) {
-			yield count;
-		}
-	}),
-	update: procedure
-		.input(
-			z.object({
-				tag: z.string(),
-				status: z.enum(["online", "away"]),
-			}),
-		)
-		.handler(async ({ context, input }) => {
-			const count = await context.do.update(context.ws, input);
-			publisher.publish(input.tag, count);
-		}),
-};
-
-export type PresenceRouter = typeof router;
-
-export type PresenceRouterClient = RouterClient<PresenceRouter>;
+import { desc } from "drizzle-orm";
+import {
+	type DrizzleSqliteDODatabase,
+	drizzle,
+} from "drizzle-orm/durable-sqlite";
+import { migrate } from "drizzle-orm/durable-sqlite/migrator";
+// @ts-ignore
+import migrations from "./db/migrations/migrations";
+import { SCHEMAS } from "./db/schema";
+import { router } from "./router";
 
 const handler = new RPCHandler(router);
 
@@ -46,6 +21,7 @@ interface TagInfo {
 
 export class Presence extends DurableObject<Env> {
 	state: DurableObjectState;
+	db: DrizzleSqliteDODatabase;
 
 	// Local maps for session management using WebSocket as key
 	sessions: Map<WebSocket, PresenceData> = new Map();
@@ -55,12 +31,21 @@ export class Presence extends DurableObject<Env> {
 	constructor(state: DurableObjectState, env: Env) {
 		super(state, env);
 		this.state = state;
+		this.db = drizzle(this.state.storage);
+
+		this.state.blockConcurrencyWhile(async () => {
+			await migrate(this.db, migrations);
+		});
 	}
 
-	fetch() {
+	async fetch() {
 		const { "0": client, "1": server } = new WebSocketPair();
-
 		this.state.acceptWebSocket(server);
+
+		await this.db.insert(SCHEMAS.presenceEvent).values({
+			sessionId: "test",
+			type: "connect",
+		});
 
 		return new Response(null, {
 			status: 101,
@@ -78,6 +63,13 @@ export class Presence extends DurableObject<Env> {
 	}
 
 	async update(ws: WebSocket, presence: PresenceData) {
+		await this.db.insert(SCHEMAS.presenceEvent).values({
+			sessionId: "test",
+			type: "update",
+			tag: presence.tag,
+			status: presence.status,
+		});
+
 		this.removeSession(ws);
 		if (presence.status === "online") {
 			this.addSession(ws, presence);
@@ -96,14 +88,7 @@ export class Presence extends DurableObject<Env> {
 		this.sessions.delete(ws);
 
 		const tagInfo = this.tags.get(sessionInfo.tag);
-		if (tagInfo) {
-			tagInfo.sessions.delete(ws);
-
-			// Remove tag if no sessions left
-			if (tagInfo.sessions.size === 0) {
-				this.tags.delete(sessionInfo.tag);
-			}
-		}
+		tagInfo?.sessions.delete(ws);
 	}
 
 	private addSession(ws: WebSocket, presence: PresenceData) {
@@ -131,5 +116,13 @@ export class Presence extends DurableObject<Env> {
 				})),
 			],
 		};
+	}
+
+	public getEvents() {
+		return this.db
+			.select()
+			.from(SCHEMAS.presenceEvent)
+			.orderBy(desc(SCHEMAS.presenceEvent.id))
+			.limit(50);
 	}
 }

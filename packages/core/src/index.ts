@@ -1,6 +1,7 @@
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/websocket";
-import type { PresenceRouterClient } from "../../../apps/server/src/durable-objects/presence.ts";
+import { WebSocket as RWS } from "partysocket";
+import type { PresenceRouterClient } from "../../../apps/server/src/durable-objects/presence/router.js";
 
 export interface PresenceConfig {
 	tag: string;
@@ -19,7 +20,7 @@ export class SimplePresence {
 	private currentStatus: "online" | "away" = "online";
 	private isDestroyed = false;
 	private currentCount = 0;
-	private websocket?: WebSocket;
+	private websocket?: RWS;
 	private client?: PresenceRouterClient;
 	private subscription?: AsyncIterable<number>;
 
@@ -47,9 +48,7 @@ export class SimplePresence {
 	}
 
 	private async setupWebSocket(): Promise<void> {
-		this.websocket = new WebSocket(
-			`${this.config.apiUrl}/${this.config.appKey}`,
-		);
+		this.websocket = new RWS(`${this.config.apiUrl}/${this.config.appKey}`);
 
 		await new Promise<void>((resolve, reject) => {
 			if (!this.websocket) {
@@ -129,7 +128,7 @@ export class SimplePresence {
 		}
 	}
 
-	public getStatus(): "online" | "away" {
+	public getStatus(): PresenceData["status"] {
 		return this.currentStatus;
 	}
 
