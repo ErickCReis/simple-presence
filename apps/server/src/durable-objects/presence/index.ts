@@ -60,6 +60,11 @@ export class Presence extends DurableObject<Env> {
 	async webSocketClose(ws: WebSocket) {
 		handler.close(ws);
 		this.removeSession(ws);
+
+		await this.db.insert(SCHEMAS.presenceEvent).values({
+			sessionId: "test",
+			type: "disconnect",
+		});
 	}
 
 	async update(ws: WebSocket, presence: PresenceData) {
