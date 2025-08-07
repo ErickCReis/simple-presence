@@ -14,7 +14,7 @@
 		"deploy": "bun run --filter '*' deploy"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.1.2",
+		"@biomejs/biome": "2.1.4",
 		"@types/bun": "^1.2.19"
 	},
 	"overrides": {

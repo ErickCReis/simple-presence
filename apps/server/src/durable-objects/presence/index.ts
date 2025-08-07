@@ -10,7 +10,7 @@ import { migrate } from "drizzle-orm/durable-sqlite/migrator";
 // @ts-ignore
 import migrations from "./db/migrations/migrations";
 import { SCHEMAS } from "./db/schema";
-import { router } from "./router";
+import { publisher, router } from "./router";
 
 const handler = new RPCHandler(router);
 
@@ -24,7 +24,7 @@ export class Presence extends DurableObject<Env> {
 	db: DrizzleSqliteDODatabase;
 
 	// Local maps for session management using WebSocket as key
-	sessions: Map<WebSocket, PresenceData> = new Map();
+	sessions: Map<WebSocket, PresenceData & { sessionId: string }> = new Map();
 	tags: Map<string, TagInfo> = new Map();
 	lastUpdated: number = Date.now();
 
@@ -38,13 +38,21 @@ export class Presence extends DurableObject<Env> {
 		});
 	}
 
-	async fetch() {
+	async fetch(_request: Request) {
 		const { "0": client, "1": server } = new WebSocketPair();
 		this.state.acceptWebSocket(server);
 
+		const sessionId = crypto.randomUUID();
 		await this.db.insert(SCHEMAS.presenceEvent).values({
-			sessionId: "test",
+			sessionId,
 			type: "connect",
+		});
+
+		// Stash sessionId until first update sets the tag
+		this.sessions.set(server as unknown as WebSocket, {
+			tag: "",
+			status: "online",
+			sessionId,
 		});
 
 		return new Response(null, {
@@ -59,17 +67,29 @@ export class Presence extends DurableObject<Env> {
 
 	async webSocketClose(ws: WebSocket) {
 		handler.close(ws);
+
+		const previous = this.sessions.get(ws);
 		this.removeSession(ws);
 
 		await this.db.insert(SCHEMAS.presenceEvent).values({
-			sessionId: "test",
+			sessionId: previous
+				? ((previous).sessionId ?? "unknown")
+				: "unknown",
 			type: "disconnect",
 		});
+
+		this.lastUpdated = Date.now();
+
+		if (previous?.tag) {
+			const tagInfo = this.tags.get(previous.tag);
+			const newCount = tagInfo ? tagInfo.sessions.size : 0;
+			publisher.publish(previous.tag, newCount);
+		}
 	}
 
 	async update(ws: WebSocket, presence: PresenceData) {
 		await this.db.insert(SCHEMAS.presenceEvent).values({
-			sessionId: "test",
+			sessionId: (this.sessions.get(ws) )?.sessionId ?? "unknown",
 			type: "update",
 			tag: presence.tag,
 			status: presence.status,
@@ -97,8 +117,12 @@ export class Presence extends DurableObject<Env> {
 	}
 
 	private addSession(ws: WebSocket, presence: PresenceData) {
-		// Update session info
-		this.sessions.set(ws, presence);
+		// Update session info; carry over sessionId if already present
+		const prev = this.sessions.get(ws);
+		this.sessions.set(ws, {
+			...presence,
+			...(prev?.sessionId ? { sessionId: prev.sessionId } : {}),
+		});
 
 		// Get or create tag info
 		let tagInfo = this.tags.get(presence.tag);

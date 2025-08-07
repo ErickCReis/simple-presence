@@ -25,15 +25,16 @@ export class SimplePresence {
 	private subscription?: AsyncIterable<number>;
 
 	constructor(config: PresenceConfig) {
-		const wsUrl =
-			config.apiUrl ??
-			process.env.SERVER_URL?.replace("http", "ws") ??
-			"ws://localhost:3000";
+		const baseUrl =
+			config.apiUrl ?? process.env.SERVER_URL ?? "http://localhost:3000";
+		const wsBase = baseUrl.startsWith("http")
+			? baseUrl.replace(/^http/, "ws")
+			: baseUrl;
 
 		this.config = {
 			tag: config.tag,
 			appKey: config.appKey,
-			apiUrl: `${wsUrl}/presence`,
+			apiUrl: `${wsBase}/presence`,
 			onCountChange: config.onCountChange,
 		};
 
@@ -63,11 +64,11 @@ export class SimplePresence {
 		this.client = createORPCClient(link);
 	}
 
+	private boundVisibilityHandler?: () => void;
+
 	private setupVisibilityDetection(): void {
-		document.addEventListener(
-			"visibilitychange",
-			this.handleVisibilityChange.bind(this),
-		);
+		this.boundVisibilityHandler = this.handleVisibilityChange.bind(this);
+		document.addEventListener("visibilitychange", this.boundVisibilityHandler);
 	}
 
 	private handleVisibilityChange(): void {
@@ -139,10 +140,13 @@ export class SimplePresence {
 	public async destroy(): Promise<void> {
 		this.isDestroyed = true;
 
-		document.removeEventListener(
-			"visibilitychange",
-			this.handleVisibilityChange,
-		);
+		if (this.boundVisibilityHandler) {
+			document.removeEventListener(
+				"visibilitychange",
+				this.boundVisibilityHandler,
+			);
+			this.boundVisibilityHandler = undefined;
+		}
 
 		this.websocket?.close();
 	}

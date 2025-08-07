@@ -16,7 +16,7 @@
 		"dev": "tsdown --watch --platform browser --env.SERVER_URL=http://localhost:3000"
 	},
 	"devDependencies": {
-		"tsdown": "^0.12.9",
+		"tsdown": "^0.13.3",
 		"typescript": "^5.8.3"
 	},
 	"dependencies": {

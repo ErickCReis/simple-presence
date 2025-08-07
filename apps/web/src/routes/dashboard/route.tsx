@@ -21,7 +21,7 @@ export const Route = createFileRoute("/dashboard")({
 
 function RouteComponent() {
 	usePresenceCount("dashboard", {
-		appKey: "tmV0CdM-q35gD5-MMR1ezJ007N-vcruF",
+		appKey: import.meta.env.VITE_DEMO_APP_KEY ?? "",
 		apiUrl: import.meta.env.VITE_SERVER_URL,
 	});
 

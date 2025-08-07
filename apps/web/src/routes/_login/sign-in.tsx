@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import * as z from "zod/v4";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,7 +42,7 @@ export function SignIn() {
 		},
 		validators: {
 			onSubmit: z.object({
-				email: z.email("Invalid email address"),
+				email: z.string().email("Invalid email address"),
 				password: z.string().min(8, "Password must be at least 8 characters"),
 			}),
 		},
@@ -73,9 +73,9 @@ export function SignIn() {
 									onBlur={field.handleBlur}
 									onChange={(e) => field.handleChange(e.target.value)}
 								/>
-								{field.state.meta.errors.map((error) => (
-									<p key={error?.message} className="text-red-500">
-										{error?.message}
+								{field.state.meta.errors.map((error, idx) => (
+									<p key={idx} className="text-red-500">
+										{String(error)}
 									</p>
 								))}
 							</div>
@@ -96,9 +96,9 @@ export function SignIn() {
 									onBlur={field.handleBlur}
 									onChange={(e) => field.handleChange(e.target.value)}
 								/>
-								{field.state.meta.errors.map((error) => (
-									<p key={error?.message} className="text-red-500">
-										{error?.message}
+								{field.state.meta.errors.map((error, idx) => (
+									<p key={idx} className="text-red-500">
+										{String(error)}
 									</p>
 								))}
 							</div>

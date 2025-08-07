@@ -4,10 +4,10 @@ import {
 	os,
 	type RouterClient,
 } from "@orpc/server";
-import z from "zod/v3";
+import { z } from "zod";
 import type { Presence } from ".";
 
-const publisher = new EventPublisher<Record<string, number>>();
+export const publisher = new EventPublisher<Record<string, number>>();
 
 const procedure = os.$context<{
 	ws: WebSocket;

@@ -2,7 +2,7 @@ import { env } from "cloudflare:workers";
 import { eventIterator } from "@orpc/server";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { z } from "zod/v3";
+import { z } from "zod";
 import { db, SCHEMAS } from "@/db";
 import { protectedProcedure } from "@/lib/orpc";
 
@@ -138,7 +138,7 @@ export const appsRouter = {
 				}),
 			),
 		)
-		.handler(async function* ({ input, context }) {
+		.handler(async function* ({ input, context, signal }) {
 			const [app] = await db
 				.select()
 				.from(SCHEMAS.app)
@@ -156,6 +156,7 @@ export const appsRouter = {
 			let lastUpdated = 0;
 
 			while (true) {
+				if (signal?.aborted) break;
 				const id = env.PRESENCE.idFromName(app.publicKey);
 				const presenceDO = env.PRESENCE.get(id);
 				const [stats, events] = await Promise.all([
