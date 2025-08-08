@@ -2,12 +2,22 @@
 /** biome-ignore-all lint/style/noNonNullAssertion: ! */
 
 import alchemy from "alchemy";
-import { D1Database, DurableObjectNamespace, Worker } from "alchemy/cloudflare";
+import {
+	AccountId,
+	D1Database,
+	DurableObjectNamespace,
+	Worker,
+} from "alchemy/cloudflare";
+import { StaticTextFile } from "alchemy/fs";
 import type { Presence } from "./src/durable-objects/presence";
 
 const app = await alchemy("simple-presence", {
 	password: process.env.SECRET_PASSPHRASE,
 });
+
+const accountId = await AccountId();
+
+await StaticTextFile("account-id", ".alchemy/account-id.txt", accountId);
 
 const presence = DurableObjectNamespace<Presence>("presence", {
 	className: "Presence",
@@ -34,6 +44,7 @@ export const server = await Worker("simple-presence-server", {
 });
 
 console.log({
+	accountId,
 	dbId: db.id,
 	serverUrl: server.url,
 });
