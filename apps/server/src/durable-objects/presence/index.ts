@@ -1,5 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import { RPCHandler } from "@orpc/server/websocket";
+import { FREE_PLAN_LIMITS } from "@simple-presence/config";
 import type { PresenceData } from "@simple-presence/core";
 import { desc } from "drizzle-orm";
 import {
@@ -19,12 +20,17 @@ interface TagInfo {
 	sessions: Set<WebSocket>;
 }
 
+interface SessionInfo {
+	id: string;
+	presence: PresenceData | null;
+}
+
 export class Presence extends DurableObject<Env> {
 	state: DurableObjectState;
 	db: DrizzleSqliteDODatabase;
 
 	// Local maps for session management using WebSocket as key
-	sessions: Map<WebSocket, PresenceData> = new Map();
+	sessions: Map<WebSocket, SessionInfo> = new Map();
 	tags: Map<string, TagInfo> = new Map();
 	lastUpdated: number = Date.now();
 
@@ -39,11 +45,21 @@ export class Presence extends DurableObject<Env> {
 	}
 
 	async fetch() {
+		// Enforce max concurrent connections per app
+		if (this.sessions.size >= FREE_PLAN_LIMITS.maxConcurrentConnectionsPerApp) {
+			return new Response("Connection limit reached for this app (free plan)", {
+				status: 429,
+			});
+		}
+
 		const { "0": client, "1": server } = new WebSocketPair();
 		this.state.acceptWebSocket(server);
+		// Create a session for this connection with no presence data yet
+		const sessionId = crypto.randomUUID();
+		this.sessions.set(server, { id: sessionId, presence: null });
 
 		await this.db.insert(SCHEMAS.presenceEvent).values({
-			sessionId: "test",
+			sessionId,
 			type: "connect",
 		});
 
@@ -59,67 +75,97 @@ export class Presence extends DurableObject<Env> {
 
 	async webSocketClose(ws: WebSocket) {
 		handler.close(ws);
+		const sessionInfo = this.sessions.get(ws);
 		this.removeSession(ws);
 
 		await this.db.insert(SCHEMAS.presenceEvent).values({
-			sessionId: "test",
+			sessionId: sessionInfo?.id ?? "unknown",
 			type: "disconnect",
 		});
 	}
 
 	async update(ws: WebSocket, presence: PresenceData) {
+		const sessionInfo = this.sessions.get(ws) ?? {
+			id: crypto.randomUUID(),
+			presence: null,
+		};
+
 		await this.db.insert(SCHEMAS.presenceEvent).values({
-			sessionId: "test",
+			sessionId: sessionInfo.id,
 			type: "update",
 			tag: presence.tag,
 			status: presence.status,
 		});
 
-		this.removeSession(ws);
-		if (presence.status === "online") {
-			this.addSession(ws, presence);
+		const previousPresence = sessionInfo.presence ?? null;
+
+		// If tag changed, remove from old tag
+		if (previousPresence) {
+			const tagChanged = previousPresence.tag !== presence.tag;
+			if (tagChanged) {
+				const previousTagInfo = this.tags.get(previousPresence.tag);
+				previousTagInfo?.sessions.delete(ws);
+			}
 		}
+
+		// Treat both "online" and "away" as active: ensure tag exists and add
+		let tagInfo = this.tags.get(presence.tag);
+		if (!tagInfo) {
+			// Enforce max tags per app (free plan)
+			if (this.tags.size >= FREE_PLAN_LIMITS.maxTagsPerApp) {
+				throw new Error(
+					`Tag limit reached for this app (max ${FREE_PLAN_LIMITS.maxTagsPerApp} tags on free plan)`,
+				);
+			}
+			tagInfo = { name: presence.tag, sessions: new Set() };
+			this.tags.set(presence.tag, tagInfo);
+		}
+		tagInfo.sessions.add(ws);
+
+		// Update the stored presence data for this session in-place
+		this.sessions.set(ws, { id: sessionInfo.id, presence });
 
 		this.lastUpdated = Date.now();
 
-		const tagInfo = this.tags.get(presence.tag);
-		return tagInfo ? tagInfo.sessions.size : 0;
+		const currentTagInfo = this.tags.get(presence.tag);
+		return currentTagInfo ? currentTagInfo.sessions.size : 0;
 	}
 
 	private removeSession(ws: WebSocket) {
 		const sessionInfo = this.sessions.get(ws);
-		if (!sessionInfo) return;
-
+		// Always delete the session record
 		this.sessions.delete(ws);
 
-		const tagInfo = this.tags.get(sessionInfo.tag);
-		tagInfo?.sessions.delete(ws);
-	}
-
-	private addSession(ws: WebSocket, presence: PresenceData) {
-		// Update session info
-		this.sessions.set(ws, presence);
-
-		// Get or create tag info
-		let tagInfo = this.tags.get(presence.tag);
-		if (!tagInfo) {
-			tagInfo = { name: presence.tag, sessions: new Set() };
-			this.tags.set(presence.tag, tagInfo);
+		// Remove from tag only if it was online with a tag
+		if (sessionInfo?.presence) {
+			const tagInfo = this.tags.get(sessionInfo.presence.tag);
+			tagInfo?.sessions.delete(ws);
 		}
-
-		// Add session to tag
-		tagInfo.sessions.add(ws);
 	}
 
 	public getStats() {
+		const tags = [...this.tags.values()].map((tag) => {
+			let online = 0;
+			let away = 0;
+			for (const socket of tag.sessions) {
+				const session = this.sessions.get(socket);
+				const presence = session?.presence;
+				if (!presence) continue;
+				if (presence.status === "online") online++;
+				else if (presence.status === "away") away++;
+			}
+
+			return {
+				name: tag.name,
+				sessions: tag.sessions.size,
+				online,
+				away,
+			};
+		});
+
 		return {
 			lastUpdated: this.lastUpdated,
-			tags: [
-				...this.tags.values().map((tag) => ({
-					name: tag.name,
-					sessions: tag.sessions.size,
-				})),
-			],
+			tags,
 		};
 	}
 

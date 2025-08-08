@@ -1,0 +1,22 @@
+{
+	"name": "@simple-presence/config",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"exports": {
+		".": {
+			"import": "./src/index.ts",
+			"types": "./src/index.ts"
+		}
+	},
+	"scripts": {
+		"build": "tsdown src/index.ts",
+		"dev": "tsdown --watch src/index.ts"
+	},
+	"devDependencies": {
+		"tsdown": "^0.12.9",
+		"typescript": "^5.8.3"
+	}
+}

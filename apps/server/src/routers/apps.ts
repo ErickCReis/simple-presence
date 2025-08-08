@@ -1,5 +1,6 @@
 import { env } from "cloudflare:workers";
 import { eventIterator } from "@orpc/server";
+import { FREE_PLAN_LIMITS } from "@simple-presence/config";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod/v3";
@@ -21,7 +22,21 @@ export const appsRouter = {
 	// Create a new app for the authenticated user
 	create: protectedProcedure
 		.input(createAppSchema)
-		.handler(async ({ input, context }) => {
+		.errors({
+			MAX_APPS_PER_USER: {
+				message: `Free plan limit reached: You can create up to ${FREE_PLAN_LIMITS.maxAppsPerUser} apps.`,
+			},
+		})
+		.handler(async ({ input, context, errors }) => {
+			// Enforce free plan limit: max 3 apps per user
+			const existingApps = await db
+				.select({ id: SCHEMAS.app.id })
+				.from(SCHEMAS.app)
+				.where(eq(SCHEMAS.app.userId, context.session.user.id));
+			if (existingApps.length >= FREE_PLAN_LIMITS.maxAppsPerUser) {
+				throw errors.MAX_APPS_PER_USER();
+			}
+
 			const appId = nanoid();
 			const publicKey = nanoid(32); // Generate a unique public key
 
@@ -125,7 +140,14 @@ export const appsRouter = {
 		.output(
 			eventIterator(
 				z.object({
-					tags: z.array(z.object({ name: z.string(), sessions: z.number() })),
+					tags: z.array(
+						z.object({
+							name: z.string(),
+							sessions: z.number(),
+							online: z.number(),
+							away: z.number(),
+						}),
+					),
 					events: z.array(
 						z.object({
 							id: z.number(),

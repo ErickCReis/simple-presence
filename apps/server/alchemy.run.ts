@@ -14,7 +14,7 @@ const presence = DurableObjectNamespace<Presence>("presence", {
 	sqlite: true,
 });
 
-const db = await D1Database("simple-presence-db");
+const db = await D1Database("simple-presence-db", { adopt: true });
 
 export const server = await Worker("simple-presence-server", {
 	entrypoint: "./src/index.ts",
@@ -22,6 +22,8 @@ export const server = await Worker("simple-presence-server", {
 	dev: {
 		port: 3000,
 	},
+	adopt: true,
+	bundle: { loader: { ".sql": "text" } },
 	bindings: {
 		DB: db,
 		PRESENCE: presence,

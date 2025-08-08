@@ -2,9 +2,9 @@
 	"name": "@simple-presence/server",
 	"type": "module",
 	"scripts": {
-		"dev": "bun --watch ./alchemy.run.ts --dev",
-		"deploy": "NODE_ENV=production bun run ./alchemy.run.ts",
-		"destroy": "NODE_ENV=production bun run ./alchemy.run.ts --destroy",
+		"dev": "alchemy dev",
+		"deploy": "NODE_ENV=production alchemy deploy",
+		"destroy": "NODE_ENV=production alchemy destroy",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
 		"db:push:prod": "drizzle-kit push --config=drizzle-prod.config.ts",
@@ -13,6 +13,7 @@
 	"dependencies": {
 		"@orpc/client": "^1.7.4",
 		"@orpc/server": "^1.7.4",
+		"@simple-presence/config": "workspace:*",
 		"@simple-presence/core": "workspace:*",
 		"better-auth": "^1.3.3",
 		"drizzle-orm": "^0.44.3",
@@ -22,7 +23,7 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250723.0",
-		"alchemy": "^0.51.3",
+		"alchemy": "^0.59.0",
 		"drizzle-kit": "^0.31.4",
 		"miniflare": "^4.20250617.4",
 		"tsc-alias": "^1.8.16",

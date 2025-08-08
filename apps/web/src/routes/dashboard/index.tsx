@@ -1,3 +1,4 @@
+import { FREE_PLAN_LIMITS } from "@simple-presence/config";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Copy, Eye, Plus, Trash2 } from "lucide-react";
@@ -39,6 +40,8 @@ function RouteComponent() {
 
 	// Query for apps
 	const appsQuery = useQuery(orpcUtils.apps.list.queryOptions());
+	const appsCount = appsQuery.data?.length ?? 0;
+	const reachedAppLimit = appsCount >= FREE_PLAN_LIMITS.maxAppsPerUser;
 
 	// Mutation for creating apps
 	const createAppMutation = useMutation({
@@ -110,7 +113,14 @@ function RouteComponent() {
 			<div className="mb-8 flex items-center justify-end">
 				<Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
 					<DialogTrigger asChild>
-						<Button>
+						<Button
+							disabled={reachedAppLimit}
+							title={
+								reachedAppLimit
+									? `Free plan limit reached (${FREE_PLAN_LIMITS.maxAppsPerUser} apps)`
+									: undefined
+							}
+						>
 							<Plus className="mr-2 h-4 w-4" />
 							Create App
 						</Button>
@@ -120,7 +130,11 @@ function RouteComponent() {
 							<DialogTitle>Create New App</DialogTitle>
 							<DialogDescription>
 								Create a new app to start tracking presence. Each app gets a
-								unique public key for tracking.
+								unique public key for tracking. Free plan limits:{" "}
+								{FREE_PLAN_LIMITS.maxAppsPerUser} apps per user,{" "}
+								{FREE_PLAN_LIMITS.maxTagsPerApp} tags per app,{" "}
+								{FREE_PLAN_LIMITS.maxConcurrentConnectionsPerApp} concurrent
+								connections per app.
 							</DialogDescription>
 						</DialogHeader>
 						<div className="space-y-4">
@@ -155,7 +169,11 @@ function RouteComponent() {
 							</Button>
 							<Button
 								onClick={handleCreateApp}
-								disabled={createAppMutation.isPending || !newAppName.trim()}
+								disabled={
+									createAppMutation.isPending ||
+									!newAppName.trim() ||
+									reachedAppLimit
+								}
 							>
 								{createAppMutation.isPending ? "Creating..." : "Create App"}
 							</Button>
@@ -275,7 +293,7 @@ function RouteComponent() {
 											Total Apps
 										</p>
 										<p className="font-bold text-2xl">
-											{appsQuery.data.length}
+											{appsCount} / {FREE_PLAN_LIMITS.maxAppsPerUser}
 										</p>
 									</div>
 									<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -291,7 +309,9 @@ function RouteComponent() {
 										<p className="font-medium text-muted-foreground text-sm">
 											Active Sessions
 										</p>
-										<p className="font-bold text-2xl">0</p>
+										<p className="font-bold text-2xl">
+											0 / {FREE_PLAN_LIMITS.maxConcurrentConnectionsPerApp}
+										</p>
 									</div>
 									<div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-500/10">
 										<Eye className="h-6 w-6 text-green-500" />

@@ -2,7 +2,7 @@ import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { defineConfig } from "drizzle-kit";
 
-const alchemyD1Path = "./.alchemy/miniflare/d1/miniflare-D1DatabaseObject";
+const alchemyD1Path = "./.alchemy/miniflare/v3/d1/miniflare-D1DatabaseObject";
 const files = readdirSync(alchemyD1Path);
 const dbPath = files.find((file) => file.endsWith(".sqlite"));
 

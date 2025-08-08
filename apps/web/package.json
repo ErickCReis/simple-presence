@@ -3,8 +3,8 @@
 	"type": "module",
 	"scripts": {
 		"build": "vite build",
-		"deploy": "NODE_ENV=production bun run ./alchemy.run.ts",
-		"destroy": "NODE_ENV=production bun run ./alchemy.run.ts --destroy",
+		"deploy": "NODE_ENV=production alchemy deploy",
+		"destroy": "NODE_ENV=production alchemy destroy",
 		"dev": "vite dev --port=3001",
 		"serve": "bunx serve .output/public -p 3001"
 	},
@@ -21,6 +21,7 @@
 		"@radix-ui/react-slot": "^1.2.3",
 		"@radix-ui/react-tooltip": "^1.2.7",
 		"@shikijs/transformers": "^3.8.1",
+		"@simple-presence/config": "workspace:*",
 		"@simple-presence/react": "workspace:*",
 		"@tanstack/react-form": "^1.14.2",
 		"@tanstack/react-query": "^5.83.0",
@@ -59,7 +60,7 @@
 		"@types/react": "^19.1.8",
 		"@types/react-dom": "^19.1.6",
 		"@vitejs/plugin-react-oxc": "^0.3.0",
-		"alchemy": "^0.43.5",
+		"alchemy": "^0.59.0",
 		"serve": "^14.2.4",
 		"tw-animate-css": "^1.3.5",
 		"typescript": "^5.8.3",

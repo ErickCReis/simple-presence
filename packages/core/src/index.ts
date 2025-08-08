@@ -19,7 +19,7 @@ export class SimplePresence {
 	private config: PresenceConfig & { apiUrl: string };
 	private currentStatus: "online" | "away" = "online";
 	private isDestroyed = false;
-	private currentCount = 0;
+	private currentCount = 1;
 	private websocket?: RWS;
 	private client?: PresenceRouterClient;
 	private subscription?: AsyncIterable<number>;

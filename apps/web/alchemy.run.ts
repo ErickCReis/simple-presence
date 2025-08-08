@@ -8,10 +8,10 @@ const app = await alchemy("simple-presence");
 const site = await Website("simple-presence", {
 	spa: true,
 	assets: {
-		dist: "./.output/public",
-		_headers: "/*\n  Cache-Control: public, max-age=3600",
+		directory: "./.output/public",
+		_headers: "/*\n  Cache-Control: public, max-age=2592000",
 	},
-	wrangler: false,
+	adopt: true,
 });
 
 console.log({
