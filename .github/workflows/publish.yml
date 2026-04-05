@@ -1,11 +1,8 @@
 name: Publish
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to publish (e.g. 0.1.0)"
-        required: true
+  push:
+    branches: [main]
 
 permissions:
   contents: read
@@ -24,16 +21,8 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
       - run: bun install --frozen-lockfile
-      - run: bun run --filter ./packages lint
-      - run: bun run --filter ./packages build
-      - name: Verify versions match
-        run: |
-          CORE_VERSION=$(node -p "require('./packages/core/package.json').version")
-          REACT_VERSION=$(node -p "require('./packages/react/package.json').version")
-          if [ "$CORE_VERSION" != "${{ inputs.version }}" ] || [ "$REACT_VERSION" != "${{ inputs.version }}" ]; then
-            echo "Version mismatch: core=$CORE_VERSION react=$REACT_VERSION expected=${{ inputs.version }}"
-            exit 1
-          fi
+      - run: bun run --bun check
+      - run: bun run --bun --filter './packages/*' build
       - name: Publish @simple-presence/core
         working-directory: packages/core
         run: npm publish --provenance --access public

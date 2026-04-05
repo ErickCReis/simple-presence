@@ -8,12 +8,9 @@
   "type": "module",
   "scripts": {
     "preinstall": "node -e \"if(!process.env.npm_execpath?.includes('bun')){console.error('Use bun as the package manager');process.exit(1)}\"",
-    "check": "oxfmt && oxlint --fix",
-    "lint": "oxlint",
-    "format": "oxfmt",
-    "format:check": "oxfmt --check",
+    "check": "oxfmt --check && oxlint",
+    "check:fix": "oxfmt && oxlint --fix",
     "typecheck": "bun run --filter '*' typecheck",
-    "test": "echo 'No tests configured yet'",
     "build": "bun run --filter '*' build",
     "dev": "bun run --parallel --filter '*' dev",
     "deploy": "bun run --filter '*' deploy"
