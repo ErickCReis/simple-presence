@@ -14,7 +14,7 @@
     "format:check": "oxfmt --check",
     "typecheck": "bun run --filter '*' typecheck",
     "test": "echo 'No tests configured yet'",
-    "build": "bun run --filter ./packages/core build && bun run --filter ./packages/react build && bun run --filter ./apps/web build",
+    "build": "bun run --filter '*' build",
     "dev": "bun run --parallel --filter '*' dev",
     "deploy": "bun run --filter '*' deploy"
   },

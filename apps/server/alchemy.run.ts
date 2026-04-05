@@ -1,11 +1,9 @@
 import alchemy from "alchemy";
-import { Assets, D1Database, DurableObjectNamespace, Website, Worker } from "alchemy/cloudflare";
+import { Assets, D1Database, DurableObjectNamespace, Worker } from "alchemy/cloudflare";
 import { CloudflareStateStore } from "alchemy/state";
 import type { Presence } from "./src/durable-objects/presence";
 
 const isProd = process.argv.at(-2) === "--stage" && process.argv.at(-1) === "prod";
-
-console.log("isProd", isProd);
 
 const app = await alchemy("simple-presence-server", {
   stateStore: isProd ? (scope) => new CloudflareStateStore(scope) : undefined,
@@ -38,8 +36,10 @@ export const server = await Worker("server", {
     ASSETS: web,
     DB: db,
     PRESENCE: presence,
-    CORS_ORIGIN: process.env.CORS_ORIGIN!,
-    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL!,
+    CORS_ORIGIN: isProd ? "https://simple-presence.erickr.dev" : process.env.CORS_ORIGIN!,
+    BETTER_AUTH_URL: isProd
+      ? "https://simple-presence.erickr.dev/api/auth"
+      : process.env.BETTER_AUTH_URL!,
     BETTER_AUTH_SECRET: alchemy.secret(process.env.BETTER_AUTH_SECRET),
   },
 });

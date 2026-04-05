@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to publish (e.g. 0.1.0-rc.1)"
+        description: "Version to publish (e.g. 0.1.0)"
         required: true
 
 permissions:
@@ -24,8 +24,8 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
       - run: bun install --frozen-lockfile
-      - run: bun run lint
-      - run: bun run build
+      - run: bun run --filter ./packages lint
+      - run: bun run --filter ./packages build
       - name: Verify versions match
         run: |
           CORE_VERSION=$(node -p "require('./packages/core/package.json').version")

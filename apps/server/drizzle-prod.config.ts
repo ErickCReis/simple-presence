@@ -1,7 +1,7 @@
 import { defineConfig } from "drizzle-kit";
 import dotenv from "dotenv";
 
-dotenv.config({ path: ".env.production" });
+dotenv.config();
 
 export default defineConfig({
   schema: "./src/db/schema",
