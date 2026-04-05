@@ -21,7 +21,6 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
       - run: bun install --frozen-lockfile
-      - run: bun run --bun check
       - run: bun run --bun --filter './packages/*' build
       - name: Publish @simple-presence/core
         working-directory: packages/core

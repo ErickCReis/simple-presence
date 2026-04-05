@@ -17,8 +17,8 @@ jobs:
         with:
           bun-version: "1.3.11"
       - run: bun install --frozen-lockfile
-      - run: bun run --bun check
       - run: bun run --bun build
+      - run: bun run --bun check
       - name: Deploy Server
         env:
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
