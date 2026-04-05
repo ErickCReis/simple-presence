@@ -1,7 +1,6 @@
-import { createORPCClient } from "@orpc/client";
-import { RPCLink } from "@orpc/client/websocket";
-import { WebSocket as RWS } from "partysocket";
 import type { PresenceRouterClient } from "../../../apps/server/src/durable-objects/presence/router.js";
+import { getOrCreateClientId } from "./client-id.js";
+import { acquireConnection, releaseConnection } from "./connection-manager.js";
 
 export interface PresenceConfig {
 	tag: string;
@@ -20,9 +19,10 @@ export class SimplePresence {
 	private currentStatus: "online" | "away" = "online";
 	private isDestroyed = false;
 	private currentCount = 1;
-	private websocket?: RWS;
-	private client?: PresenceRouterClient;
+  private client?: PresenceRouterClient;
 	private subscription?: AsyncIterable<number>;
+  private clientId: string;
+  private readonly visibilityHandler: () => void;
 
 	constructor(config: PresenceConfig) {
 		const wsUrl =
@@ -30,14 +30,16 @@ export class SimplePresence {
 			process.env.SERVER_URL?.replace("http", "ws") ??
 			"ws://localhost:3000";
 
-		this.config = {
+    this.config = {
 			tag: config.tag,
 			appKey: config.appKey,
 			apiUrl: `${wsUrl}/presence`,
 			onCountChange: config.onCountChange,
 		};
 
-		this.initialize();
+    this.clientId = getOrCreateClientId();
+    this.visibilityHandler = this.handleVisibilityChange.bind(this);
+    this.initialize();
 	}
 
 	private async initialize(): Promise<void> {
@@ -47,27 +49,17 @@ export class SimplePresence {
 		await this.updatePresence();
 	}
 
-	private async setupWebSocket(): Promise<void> {
-		this.websocket = new RWS(`${this.config.apiUrl}/${this.config.appKey}`);
-
-		await new Promise<void>((resolve, reject) => {
-			if (!this.websocket) {
-				return reject(new Error("WebSocket not initialized"));
-			}
-
-			this.websocket.onopen = () => resolve();
-			this.websocket.onerror = (error) => reject(error);
-		});
-
-		const link = new RPCLink({ websocket: this.websocket });
-		this.client = createORPCClient(link);
-	}
+  private async setupWebSocket(): Promise<void> {
+    this.client = await acquireConnection(
+      this.config.apiUrl,
+      this.config.appKey,
+      this.config.tag,
+      this.clientId,
+    );
+  }
 
 	private setupVisibilityDetection(): void {
-		document.addEventListener(
-			"visibilitychange",
-			this.handleVisibilityChange.bind(this),
-		);
+    document.addEventListener("visibilitychange", this.visibilityHandler);
 	}
 
 	private handleVisibilityChange(): void {
@@ -139,13 +131,14 @@ export class SimplePresence {
 	public async destroy(): Promise<void> {
 		this.isDestroyed = true;
 
-		document.removeEventListener(
-			"visibilitychange",
-			this.handleVisibilityChange,
-		);
+    document.removeEventListener("visibilitychange", this.visibilityHandler);
 
-		this.websocket?.close();
+    releaseConnection(this.config.apiUrl, this.config.appKey, this.config.tag);
 	}
+
+  public getClientId(): string {
+    return this.clientId;
+  }
 }
 
 // Global initialization function
