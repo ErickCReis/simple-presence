@@ -1,33 +1,33 @@
 {
-	"name": "@simple-presence/server",
-	"type": "module",
-	"scripts": {
-		"dev": "alchemy dev",
-		"deploy": "alchemy deploy --stage=prod",
-		"destroy": "alchemy destroy --stage=prod",
-		"db:push": "drizzle-kit push",
-		"db:studio": "drizzle-kit studio",
-		"db:push:prod": "drizzle-kit push --config=drizzle-prod.config.ts",
-		"db:studio:prod": "drizzle-kit studio --config=drizzle-prod.config.ts"
-	},
-	"dependencies": {
-		"@orpc/client": "^1.13.13",
-		"@orpc/server": "^1.13.13",
-		"@simple-presence/config": "workspace:*",
-		"@simple-presence/contracts": "workspace:*",
-		"better-auth": "^1.5.6",
-		"drizzle-orm": "^0.45.2",
-		"hono": "^4.12.10",
-		"nanoid": "^5.1.7",
-		"valibot": "^1.0.0"
-	},
-	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20260405.1",
-		"alchemy": "^0.90.1",
-		"dotenv": "^17.4.1",
-		"drizzle-kit": "^0.31.10",
-		"miniflare": "^4.20260401.0",
-		"tsc-alias": "^1.8.16",
-		"typescript": "^6.0.2"
-	}
+  "name": "@simple-presence/server",
+  "type": "module",
+  "scripts": {
+    "dev": "alchemy dev",
+    "deploy": "alchemy deploy --stage=prod",
+    "destroy": "alchemy destroy --stage=prod",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:push:prod": "drizzle-kit push --config=drizzle-prod.config.ts",
+    "db:studio:prod": "drizzle-kit studio --config=drizzle-prod.config.ts"
+  },
+  "dependencies": {
+    "@orpc/client": "^1.13.13",
+    "@orpc/server": "^1.13.13",
+    "@simple-presence/config": "workspace:*",
+    "@simple-presence/contracts": "workspace:*",
+    "better-auth": "^1.5.6",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.12.10",
+    "nanoid": "^5.1.7",
+    "valibot": "^1.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260405.1",
+    "alchemy": "^0.90.1",
+    "dotenv": "^17.4.1",
+    "drizzle-kit": "^0.31.10",
+    "miniflare": "^4.20260401.0",
+    "tsc-alias": "^1.8.16",
+    "typescript": "^6.0.2"
+  }
 }
