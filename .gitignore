@@ -1,4 +1,5 @@
 node_modules
+dist
 .alchemy
 .DS_Store
 

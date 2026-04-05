@@ -1,196 +1,185 @@
 import { env } from "cloudflare:workers";
 import { eventIterator } from "@orpc/server";
+import {
+  type AppDetail,
+  type PresenceEventDto,
+  appDetailSchema,
+  createAppInputSchema,
+  updateAppInputSchema,
+  watchAppPayloadSchema,
+} from "@simple-presence/contracts";
 import { FREE_PLAN_LIMITS } from "@simple-presence/config";
 import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { z } from "zod/v3";
+import * as v from "valibot";
 import { db, SCHEMAS } from "@/db";
 import { protectedProcedure } from "@/lib/orpc";
 
-const createAppSchema = z.object({
-	name: z.string().min(1).max(100),
-	description: z.string().optional(),
-});
+function toAppDto(app: {
+  id: string;
+  name: string;
+  publicKey: string;
+  description: string | null;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}): AppDetail {
+  return {
+    id: app.id,
+    name: app.name,
+    publicKey: app.publicKey,
+    description: app.description,
+    createdAt: app.createdAt.toISOString(),
+    updatedAt: app.updatedAt.toISOString(),
+  };
+}
 
-const updateAppSchema = z.object({
-	id: z.string(),
-	name: z.string().min(1).max(100).optional(),
-	description: z.string().optional(),
-});
+function toPresenceEventDto(event: {
+  id: number;
+  type: string;
+  timestamp: Date;
+  tag: string | null;
+  status: string | null;
+}): PresenceEventDto {
+  return {
+    id: event.id,
+    type: event.type,
+    timestamp: event.timestamp.toISOString(),
+    tag: event.tag,
+    status: event.status,
+  };
+}
 
 export const appsRouter = {
-	// Create a new app for the authenticated user
-	create: protectedProcedure
-		.input(createAppSchema)
-		.errors({
-			MAX_APPS_PER_USER: {
-				message: `Free plan limit reached: You can create up to ${FREE_PLAN_LIMITS.maxAppsPerUser} apps.`,
-			},
-		})
-		.handler(async ({ input, context, errors }) => {
-			// Enforce free plan limit: max 3 apps per user
-			const existingApps = await db
-				.select({ id: SCHEMAS.app.id })
-				.from(SCHEMAS.app)
-				.where(eq(SCHEMAS.app.userId, context.session.user.id));
-			if (existingApps.length >= FREE_PLAN_LIMITS.maxAppsPerUser) {
-				throw errors.MAX_APPS_PER_USER();
-			}
+  create: protectedProcedure
+    .input(createAppInputSchema)
+    .output(appDetailSchema)
+    .errors({
+      MAX_APPS_PER_USER: {
+        message: `Free plan limit reached: You can create up to ${FREE_PLAN_LIMITS.maxAppsPerUser} apps.`,
+      },
+    })
+    .handler(async ({ input, context, errors }) => {
+      const existingApps = await db
+        .select({ id: SCHEMAS.app.id })
+        .from(SCHEMAS.app)
+        .where(eq(SCHEMAS.app.userId, context.session.user.id));
+      if (existingApps.length >= FREE_PLAN_LIMITS.maxAppsPerUser) {
+        throw errors.MAX_APPS_PER_USER();
+      }
 
-			const appId = nanoid();
-			const publicKey = nanoid(32); // Generate a unique public key
+      const appId = nanoid();
+      const publicKey = nanoid(32);
 
-			const [app] = await db
-				.insert(SCHEMAS.app)
-				.values({
-					id: appId,
-					name: input.name,
-					description: input.description,
-					publicKey,
-					userId: context.session.user.id,
-				})
-				.returning();
+      const [app] = await db
+        .insert(SCHEMAS.app)
+        .values({
+          id: appId,
+          name: input.name,
+          description: input.description,
+          publicKey,
+          userId: context.session.user.id,
+        })
+        .returning();
 
-			return app;
-		}),
+      return toAppDto(app!);
+    }),
 
-	// List all apps for the authenticated user
-	list: protectedProcedure.handler(async ({ context }) => {
-		const apps = await db
-			.select()
-			.from(SCHEMAS.app)
-			.where(eq(SCHEMAS.app.userId, context.session.user.id))
-			.orderBy(SCHEMAS.app.createdAt);
+  list: protectedProcedure.output(v.array(appDetailSchema)).handler(async ({ context }) => {
+    const apps = await db
+      .select()
+      .from(SCHEMAS.app)
+      .where(eq(SCHEMAS.app.userId, context.session.user.id))
+      .orderBy(SCHEMAS.app.createdAt);
 
-		return apps;
-	}),
+    return apps.map(toAppDto);
+  }),
 
-	// Get a specific app by ID
-	get: protectedProcedure
-		.input(z.object({ id: z.string() }))
-		.handler(async ({ input, context }) => {
-			const [app] = await db
-				.select()
-				.from(SCHEMAS.app)
-				.where(
-					and(
-						eq(SCHEMAS.app.id, input.id),
-						eq(SCHEMAS.app.userId, context.session.user.id),
-					),
-				);
+  get: protectedProcedure
+    .input(v.object({ id: v.string() }))
+    .output(appDetailSchema)
+    .errors({
+      NOT_FOUND: { message: "App not found" },
+    })
+    .handler(async ({ input, context, errors }) => {
+      const [app] = await db
+        .select()
+        .from(SCHEMAS.app)
+        .where(and(eq(SCHEMAS.app.id, input.id), eq(SCHEMAS.app.userId, context.session.user.id)));
 
-			if (!app) {
-				throw new Error("App not found");
-			}
+      if (!app) throw errors.NOT_FOUND();
+      return toAppDto(app);
+    }),
 
-			return app;
-		}),
+  update: protectedProcedure
+    .input(updateAppInputSchema)
+    .output(appDetailSchema)
+    .errors({
+      NOT_FOUND: { message: "App not found" },
+    })
+    .handler(async ({ input, context, errors }) => {
+      const [app] = await db
+        .update(SCHEMAS.app)
+        .set({
+          ...(input.name && { name: input.name }),
+          ...(input.description !== undefined && {
+            description: input.description,
+          }),
+          updatedAt: new Date(),
+        })
+        .where(and(eq(SCHEMAS.app.id, input.id), eq(SCHEMAS.app.userId, context.session.user.id)))
+        .returning();
 
-	// Update an app
-	update: protectedProcedure
-		.input(updateAppSchema)
-		.handler(async ({ input, context }) => {
-			const [app] = await db
-				.update(SCHEMAS.app)
-				.set({
-					...(input.name && { name: input.name }),
-					...(input.description !== undefined && {
-						description: input.description,
-					}),
-					updatedAt: new Date(),
-				})
-				.where(
-					and(
-						eq(SCHEMAS.app.id, input.id),
-						eq(SCHEMAS.app.userId, context.session.user.id),
-					),
-				)
-				.returning();
+      if (!app) throw errors.NOT_FOUND();
+      return toAppDto(app);
+    }),
 
-			if (!app) {
-				throw new Error("App not found");
-			}
+  delete: protectedProcedure
+    .input(v.object({ id: v.string() }))
+    .output(v.object({ success: v.boolean() }))
+    .errors({
+      NOT_FOUND: { message: "App not found" },
+    })
+    .handler(async ({ input, context, errors }) => {
+      const [app] = await db
+        .delete(SCHEMAS.app)
+        .where(and(eq(SCHEMAS.app.id, input.id), eq(SCHEMAS.app.userId, context.session.user.id)))
+        .returning();
 
-			return app;
-		}),
+      if (!app) throw errors.NOT_FOUND();
+      return { success: true };
+    }),
 
-	// Delete an app
-	delete: protectedProcedure
-		.input(z.object({ id: z.string() }))
-		.handler(async ({ input, context }) => {
-			const [app] = await db
-				.delete(SCHEMAS.app)
-				.where(
-					and(
-						eq(SCHEMAS.app.id, input.id),
-						eq(SCHEMAS.app.userId, context.session.user.id),
-					),
-				)
-				.returning();
+  watch: protectedProcedure
+    .input(v.object({ id: v.string() }))
+    .output(eventIterator(watchAppPayloadSchema))
+    .errors({
+      NOT_FOUND: { message: "App not found" },
+    })
+    .handler(async function* ({ input, context, errors }) {
+      const [app] = await db
+        .select()
+        .from(SCHEMAS.app)
+        .where(and(eq(SCHEMAS.app.id, input.id), eq(SCHEMAS.app.userId, context.session.user.id)));
 
-			if (!app) {
-				throw new Error("App not found");
-			}
+      if (!app) throw errors.NOT_FOUND();
 
-			return { success: true };
-		}),
+      let lastUpdated = 0;
 
-	watch: protectedProcedure
-		.input(z.object({ id: z.string() }))
-		.output(
-			eventIterator(
-				z.object({
-					tags: z.array(
-						z.object({
-							name: z.string(),
-							sessions: z.number(),
-							online: z.number(),
-							away: z.number(),
-						}),
-					),
-					events: z.array(
-						z.object({
-							id: z.number(),
-							type: z.string(),
-							timestamp: z.date(),
-							tag: z.string().nullable(),
-							status: z.string().nullable(),
-						}),
-					),
-				}),
-			),
-		)
-		.handler(async function* ({ input, context }) {
-			const [app] = await db
-				.select()
-				.from(SCHEMAS.app)
-				.where(
-					and(
-						eq(SCHEMAS.app.id, input.id),
-						eq(SCHEMAS.app.userId, context.session.user.id),
-					),
-				);
+      while (true) {
+        const id = env.PRESENCE.idFromName(app.publicKey);
+        const presenceDO = env.PRESENCE.get(id);
+        const [stats, events] = await Promise.all([presenceDO.getStats(), presenceDO.getEvents()]);
 
-			if (!app) {
-				throw new Error("App not found");
-			}
+        if (stats.lastUpdated > lastUpdated) {
+          lastUpdated = stats.lastUpdated;
+          yield {
+            tags: stats.tags,
+            events: events.map(toPresenceEventDto),
+          };
+        }
 
-			let lastUpdated = 0;
-
-			while (true) {
-				const id = env.PRESENCE.idFromName(app.publicKey);
-				const presenceDO = env.PRESENCE.get(id);
-				const [stats, events] = await Promise.all([
-					presenceDO.getStats(),
-					presenceDO.getEvents(),
-				]);
-
-				if (stats.lastUpdated > lastUpdated) {
-					lastUpdated = stats.lastUpdated;
-					yield { tags: stats.tags, events };
-				}
-
-				await new Promise((resolve) => setTimeout(resolve, 1000));
-			}
-		}),
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }),
 };

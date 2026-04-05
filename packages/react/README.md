@@ -1,8 +1,8 @@
 # @simple-presence/react
 
-React hook for Simple Presence - User presence tracking.
+React hooks for real-time user presence tracking.
 
-## Installation
+## Install
 
 ```bash
 npm install @simple-presence/react @simple-presence/core
@@ -10,51 +10,49 @@ npm install @simple-presence/react @simple-presence/core
 
 ## Usage
 
-### usePresenceCount Hook
-
-A simple hook that tracks and returns the current online count:
-
 ```tsx
-import { usePresenceCount } from '@simple-presence/react';
+import { usePresenceCount } from "@simple-presence/react";
 
-function OnlineCount() {
-  const count = usePresenceCount('your-app-key');
+function OnlineUsers() {
+  const count = usePresenceCount("my-page", {
+    appKey: "your-app-key",
+  });
 
   return <span>{count} users online</span>;
 }
 ```
 
-With custom API URL:
+## API
+
+### `usePresenceCount(tag, options)`
+
+Returns the current online count for the given tag.
+
+| Param            | Type      | Description           |
+| ---------------- | --------- | --------------------- |
+| `tag`            | `string`  | The tag to track      |
+| `options.appKey` | `string`  | Your app's public key |
+| `options.apiUrl` | `string?` | Override the API URL  |
+
+**Returns:** `number` — the current online count for the tag.
+
+The hook manages the `SimplePresence` lifecycle automatically — it creates the instance on mount and destroys it on unmount.
+
+## Override API URL
+
+For local development or self-hosting:
 
 ```tsx
-function OnlineCount() {
-  const count = usePresenceCount('your-app-key', 'https://your-api-url.com');
-
-  return <span>{count} users online</span>;
-}
+const count = usePresenceCount("my-page", {
+  appKey: "your-app-key",
+  apiUrl: "http://localhost:3000",
+});
 ```
 
-## API Reference
+## Requirements
 
-### usePresenceCount(appKey, apiUrl?)
+- React >= 18
 
-**Parameters:**
-- `appKey` (string): Required app key for presence tracking
-- `apiUrl` (string, optional): API URL override
+## License
 
-**Returns:**
-- `count` (number): Current online count
-
-## Features
-
-- **Automatic page tracking**: Detects page changes automatically
-- **Visibility detection**: Tracks when user switches tabs or windows
-- **Heartbeat system**: Maintains presence with periodic updates
-- **Debounced updates**: Prevents excessive API calls
-- **React lifecycle integration**: Properly cleans up on unmount
-- **TypeScript support**: Full type safety
-
-## Dependencies
-
-- React 18+
-- @simple-presence/core 
+MIT

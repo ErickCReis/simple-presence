@@ -56,7 +56,10 @@ function writeCookie(name: string, value: string, maxAgeSeconds = 60 * 60 * 24 *
 
 function generateRandomId(): string {
   const globalCrypto = (typeof crypto !== "undefined" ? crypto : undefined) as
-    | { randomUUID?: () => string; getRandomValues?: (arr: Uint8Array) => Uint8Array }
+    | {
+        randomUUID?: () => string;
+        getRandomValues?: (arr: Uint8Array) => Uint8Array;
+      }
     | undefined;
   if (globalCrypto?.randomUUID) {
     return globalCrypto.randomUUID();
@@ -101,5 +104,3 @@ export function getOrCreateClientId(customStorageKey?: string): string {
   cachedClientId = id;
   return id;
 }
-
-

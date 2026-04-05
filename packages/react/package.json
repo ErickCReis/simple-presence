@@ -1,29 +1,56 @@
 {
-	"name": "@simple-presence/react",
-	"version": "0.0.1",
-	"description": "Simple Presence - React hooks for user presence tracking",
-	"type": "module",
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"exports": {
-		".": {
-			"import": "./dist/index.js",
-			"types": "./dist/index.d.ts"
-		}
-	},
-	"dependencies": {
-		"@simple-presence/core": "workspace:*"
-	},
-	"peerDependencies": {
-		"react": ">=18.0.0"
-	},
-	"devDependencies": {
-		"@types/react": "^18.0.0",
-		"tsdown": "^0.12.9",
-		"typescript": "^5.8.3"
-	},
-	"scripts": {
-		"build": "tsdown --platform browser src/index.tsx",
-		"dev": "tsdown --watch --platform browser src/index.tsx"
-	}
+  "name": "@simple-presence/react",
+  "version": "0.1.0",
+  "description": "React hooks for real-time user presence tracking",
+  "keywords": [
+    "hooks",
+    "online-users",
+    "presence",
+    "react",
+    "real-time",
+    "websocket"
+  ],
+  "homepage": "https://simple-presence.erickr.dev",
+  "bugs": {
+    "url": "https://github.com/ErickCReis/simple-presence/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ErickCReis/simple-presence.git",
+    "directory": "packages/react"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown --platform browser src/index.tsx",
+    "dev": "tsdown --watch --platform browser src/index.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@simple-presence/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "tsdown": "^0.21.7",
+    "typescript": "^6.0.2"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  }
 }

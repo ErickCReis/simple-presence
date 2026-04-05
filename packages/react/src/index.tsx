@@ -10,30 +10,30 @@ import { useEffect, useRef, useState } from "react";
  * @returns Current online count
  */
 export function usePresenceCount(
-	tag: string,
-	options: Omit<PresenceConfig, "tag" | "onCountChange">,
+  tag: string,
+  options: Omit<PresenceConfig, "tag" | "onCountChange">,
 ): number {
-	const [count, setCount] = useState<number>(0);
-	const presenceRef = useRef<SimplePresence | null>(null);
+  const [count, setCount] = useState<number>(0);
+  const presenceRef = useRef<SimplePresence | null>(null);
 
-	useEffect(() => {
-		const presence = new SimplePresence({
-			tag,
-			onCountChange: setCount,
-			apiUrl: options.apiUrl,
-			appKey: options.appKey,
-		});
+  useEffect(() => {
+    const presence = new SimplePresence({
+      tag,
+      onCountChange: setCount,
+      apiUrl: options.apiUrl,
+      appKey: options.appKey,
+    });
 
-		presenceRef.current = presence;
-		setCount(presence.getCount());
+    presenceRef.current = presence;
+    setCount(presence.getCount());
 
-		return () => {
-			if (presenceRef.current) {
-				presenceRef.current.destroy();
-				presenceRef.current = null;
-			}
-		};
-	}, [tag, options.apiUrl, options.appKey]);
+    return () => {
+      if (presenceRef.current) {
+        void presenceRef.current.destroy();
+        presenceRef.current = null;
+      }
+    };
+  }, [tag, options.apiUrl, options.appKey]);
 
-	return count;
+  return count;
 }

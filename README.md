@@ -1,74 +1,87 @@
-# simple-presence
+# Simple Presence
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Hono, ORPC, and more.
+Real-time user presence tracking for any JavaScript application.
 
-## Features
+**SDK Packages:**
 
-- **TypeScript** - For type safety and improved developer experience
-- **TanStack Start** - SSR framework with TanStack Router
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **shadcn/ui** - Reusable UI components
-- **Hono** - Lightweight, performant server framework
-- **oRPC** - End-to-end type-safe APIs with OpenAPI integration
-- **Node.js** - Runtime environment
-- **Drizzle** - TypeScript-first ORM
-- **SQLite/Turso** - Database engine
-- **Authentication** - Email & password authentication with Better Auth
-- **Biome** - Linting and formatting
+- [`@simple-presence/core`](./packages/core) - Framework-agnostic presence client
+- [`@simple-presence/react`](./packages/react) - React hooks for presence tracking
 
-## Getting Started
+**Hosted Service:**
 
-First, install the dependencies:
+- Dashboard: [simple-presence.erickr.dev](https://simple-presence.erickr.dev)
+- API/WebSocket: `api.simple-presence.erickr.dev`
+
+## Quick Start
+
+### React
+
+```tsx
+import { usePresenceCount } from "@simple-presence/react";
+
+function OnlineUsers() {
+  const count = usePresenceCount("my-page", {
+    appKey: "your-app-key",
+  });
+
+  return <span>{count} users online</span>;
+}
+```
+
+### Vanilla JS
+
+```js
+import { SimplePresence } from "@simple-presence/core";
+
+const presence = new SimplePresence({
+  tag: "my-page",
+  appKey: "your-app-key",
+  onCountChange: (count) => {
+    console.log("Online users:", count);
+  },
+});
+
+// Clean up when done
+presence.destroy();
+```
+
+## How It Works
+
+1. **Create an app** at [simple-presence.erickr.dev](https://simple-presence.erickr.dev) and copy your app key.
+2. **Install the SDK** in your project.
+3. **Track presence** by tag — each tag represents a page or section.
+4. **Get live counts** via WebSocket callbacks.
+
+The SDK defaults to the hosted backend. For local development or self-hosting, pass `apiUrl`:
+
+```js
+new SimplePresence({
+  tag: "my-page",
+  appKey: "your-app-key",
+  apiUrl: "http://localhost:3000",
+});
+```
+
+## Monorepo Structure
+
+```
+apps/
+  server/   - Cloudflare Worker (Hono + oRPC + Durable Objects)
+  web/      - Dashboard (TanStack Start + React)
+packages/
+  contracts/ - Shared schemas and wire contracts (private)
+  config/    - Shared constants (private)
+  core/      - @simple-presence/core
+  react/     - @simple-presence/react
+```
+
+## Development
 
 ```bash
 bun install
-```
-## Database Setup
-
-This project uses SQLite with Drizzle ORM.
-
-1. Start the local SQLite database:
-```bash
-cd apps/server && bun db:local
+bun run dev
 ```
 
-2. Update your `.env` file in the `apps/server` directory with the appropriate connection details if needed.
+## License
 
-3. Apply the schema to your database:
-```bash
-bun db:push
-```
-
-
-Then, run the development server:
-
-```bash
-bun dev
-```
-
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
-
-The API is running at [http://localhost:3000](http://localhost:3000).
-
-
-
-## Project Structure
-
-```
-simple-presence/
-├── apps/
-│   ├── web/         # Frontend application (React + TanStack Start)
-│   └── server/      # Backend API (Hono, ORPC)
-```
-
-## Available Scripts
-
-- `bun dev`: Start all applications in development mode
-- `bun build`: Build all applications
-- `bun dev:web`: Start only the web application
-- `bun dev:server`: Start only the server
-- `bun check-types`: Check TypeScript types across all apps
-- `bun db:push`: Push schema changes to database
-- `bun db:studio`: Open database studio UI
-- `cd apps/server && bun db:local`: Start the local SQLite database
-- `bun check`: Run Biome formatting and linting
+MIT

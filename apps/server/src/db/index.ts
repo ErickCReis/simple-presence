@@ -6,6 +6,6 @@ import * as presence from "./schema/presence";
 export const db = drizzle(env.DB);
 
 export const SCHEMAS = {
-	...auth,
-	...presence,
+  ...auth,
+  ...presence,
 };

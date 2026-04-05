@@ -1,52 +1,52 @@
-/// <reference types="bun" />
-/** biome-ignore-all lint/style/noNonNullAssertion: ! */
-
 import alchemy from "alchemy";
-import {
-	AccountId,
-	D1Database,
-	DurableObjectNamespace,
-	Worker,
-} from "alchemy/cloudflare";
-import { StaticTextFile } from "alchemy/fs";
+import { Assets, D1Database, DurableObjectNamespace, Website, Worker } from "alchemy/cloudflare";
+import { CloudflareStateStore } from "alchemy/state";
 import type { Presence } from "./src/durable-objects/presence";
 
-const app = await alchemy("simple-presence", {
-	password: process.env.SECRET_PASSPHRASE,
+const isProd = process.argv.at(-2) === "--stage" && process.argv.at(-1) === "prod";
+
+console.log("isProd", isProd);
+
+const app = await alchemy("simple-presence-server", {
+  stateStore: isProd ? (scope) => new CloudflareStateStore(scope) : undefined,
+  password: process.env.ALCHEMY_SECRET_PASSPHRASE,
 });
 
-const accountId = await AccountId();
-
-await StaticTextFile("account-id", ".alchemy/account-id.txt", accountId);
+const web = await Assets({ path: "../web/dist/client" });
 
 const presence = DurableObjectNamespace<Presence>("presence", {
-	className: "Presence",
-	sqlite: true,
+  className: "Presence",
+  sqlite: true,
 });
 
-const db = await D1Database("simple-presence-db", { adopt: true });
+export const db = await D1Database("db", { adopt: true });
 
-export const server = await Worker("simple-presence-server", {
-	entrypoint: "./src/index.ts",
-	compatibility: "node",
-	dev: {
-		port: 3000,
-	},
-	adopt: true,
-	bundle: { loader: { ".sql": "text" } },
-	bindings: {
-		DB: db,
-		PRESENCE: presence,
-		CORS_ORIGIN: process.env.CORS_ORIGIN!,
-		BETTER_AUTH_URL: process.env.BETTER_AUTH_URL!,
-		BETTER_AUTH_SECRET: alchemy.secret(process.env.BETTER_AUTH_SECRET),
-	},
+export const server = await Worker("server", {
+  entrypoint: "./src/index.ts",
+  compatibility: "node",
+  dev: {
+    port: 3000,
+  },
+  domains: isProd ? ["simple-presence.erickr.dev"] : undefined,
+  adopt: true,
+  bundle: { loader: { ".sql": "text" } },
+  assets: {
+    _headers: "/*\n  Cache-Control: public, max-age=2592000",
+    run_worker_first: ["/api/**"],
+  },
+  bindings: {
+    ASSETS: web,
+    DB: db,
+    PRESENCE: presence,
+    CORS_ORIGIN: process.env.CORS_ORIGIN!,
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL!,
+    BETTER_AUTH_SECRET: alchemy.secret(process.env.BETTER_AUTH_SECRET),
+  },
 });
 
 console.log({
-	accountId,
-	dbId: db.id,
-	serverUrl: server.url,
+  dbId: db.id,
+  serverUrl: server.url,
 });
 
 await app.finalize();

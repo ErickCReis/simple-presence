@@ -4,10 +4,10 @@ import m0002 from "./0002_bored_network.sql";
 import journal from "./meta/_journal.json";
 
 export default {
-	journal,
-	migrations: {
-		m0000,
-		m0001,
-		m0002,
-	},
+  journal,
+  migrations: {
+    m0000,
+    m0001,
+    m0002,
+  },
 };

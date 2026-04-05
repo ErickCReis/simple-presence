@@ -1,6 +1,7 @@
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/websocket";
 import { WebSocket as RWS } from "partysocket";
+
 // Intentionally avoid importing server router types here to prevent cross-package type coupling
 
 type ConnectionKey = string;
@@ -47,7 +48,7 @@ export async function acquireConnection(
     websocket.onopen = () => resolve();
     websocket.onerror = (error) => reject(error);
   });
-  const link = new RPCLink({ websocket });
+  const link = new RPCLink({ websocket: websocket as unknown as WebSocket });
   const client = createORPCClient(link) as unknown;
 
   const record: ConnectionRecord = {
@@ -86,5 +87,3 @@ export function releaseConnection(apiUrl: string, appKey: string, tag: string): 
     connections.delete(key);
   }
 }
-
-

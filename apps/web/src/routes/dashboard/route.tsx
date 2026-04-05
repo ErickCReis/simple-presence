@@ -1,68 +1,58 @@
 import { usePresenceCount } from "@simple-presence/react";
-import {
-	createFileRoute,
-	Link,
-	Outlet,
-	useNavigate,
-} from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import {
-	Breadcrumb,
-	BreadcrumbItem,
-	BreadcrumbLink,
-	BreadcrumbList,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/dashboard")({
-	component: RouteComponent,
+  component: RouteComponent,
 });
 
 function RouteComponent() {
-	usePresenceCount("dashboard", {
-		appKey: import.meta.env.VITE_DEMO_APP_KEY as string,
-		apiUrl: import.meta.env.VITE_SERVER_URL,
-	});
+  usePresenceCount("dashboard", {
+    appKey: import.meta.env.VITE_DEMO_APP_KEY as string,
+    apiUrl: import.meta.env.VITE_SERVER_URL,
+  });
 
-	const navigate = useNavigate();
-	const session = authClient.useSession();
+  const navigate = useNavigate();
+  const session = authClient.useSession();
 
-	useEffect(() => {
-		if (session.isPending) return;
+  useEffect(() => {
+    if (session.isPending) return;
 
-		if (!session.data?.user) {
-			navigate({ to: "/sign-in" });
-		}
-	}, [session, navigate]);
+    if (!session.data?.user) {
+      void navigate({ to: "/sign-in" });
+    }
+  }, [session, navigate]);
 
-	return (
-		<>
-			<header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-				<div className="flex items-baseline gap-4 px-4">
-					<Link to="/" className="font-bold text-2xl">
-						Simple Presence
-					</Link>
+  return (
+    <>
+      <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+        <div className="flex items-baseline gap-4 px-4">
+          <Link to="/" className="font-bold text-2xl">
+            Simple Presence
+          </Link>
 
-					<Separator
-						orientation="vertical"
-						className="data-[orientation=vertical]:h-4"
-					/>
+          <Separator orientation="vertical" className="data-[orientation=vertical]:h-4" />
 
-					<Breadcrumb>
-						<BreadcrumbList>
-							<BreadcrumbItem className="hidden md:block">
-								<BreadcrumbLink asChild>
-									<Link to="/dashboard">Dashboard</Link>
-								</BreadcrumbLink>
-							</BreadcrumbItem>
-						</BreadcrumbList>
-					</Breadcrumb>
-				</div>
-			</header>
-			<div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-				<Outlet />
-			</div>
-		</>
-	);
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbLink render={<Link to="/dashboard" />}>Dashboard</BreadcrumbLink>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+      </header>
+      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <Outlet />
+      </div>
+    </>
+  );
 }
