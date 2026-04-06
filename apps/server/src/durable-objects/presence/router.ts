@@ -1,29 +1,30 @@
-import { EventPublisher, eventIterator, os, type RouterClient } from "@orpc/server";
-import { presenceUpdateInputSchema } from "@simple-presence/contracts";
-import * as v from "valibot";
+import { implement } from "@orpc/server";
+import { HibernationEventIterator } from "@orpc/server/hibernation";
+import { presenceContract } from "@simple-presence/contracts";
 import type { Presence } from ".";
 
-const publisher = new EventPublisher<Record<string, number>>();
-
-const procedure = os.$context<{
+export type PresenceRouterContext = {
   ws: WebSocket;
   do: Presence;
-}>();
-
-export const router = {
-  on: procedure
-    .input(v.object({ tag: v.string() }))
-    .output(eventIterator(v.number()))
-    .handler(async function* ({ input, signal }) {
-      for await (const count of publisher.subscribe(input.tag, { signal })) {
-        yield count;
-      }
-    }),
-  update: procedure.input(presenceUpdateInputSchema).handler(async ({ context, input }) => {
-    const count = await context.do.update(context.ws, input);
-    publisher.publish(input.tag, count);
-  }),
 };
 
+const presence = implement(presenceContract).$context<PresenceRouterContext>();
+
+export const router = presence.router({
+  on: presence.on.handler(async ({ context, input }) => {
+    return new HibernationEventIterator<number>((id) =>
+      context.do.registerCountSubscription(context.ws, id, input.tag),
+    );
+  }),
+  update: presence.update.handler(async ({ context, input }) => {
+    const result = await context.do.update(context.ws, input);
+
+    if (result.previousTag && result.previousTag !== input.tag) {
+      context.do.broadcastTagCount(result.previousTag, result.previousTagCount, context.ws);
+    }
+
+    context.do.broadcastTagCount(input.tag, result.currentTagCount);
+  }),
+});
+
 export type PresenceRouter = typeof router;
-export type PresenceRouterClient = RouterClient<PresenceRouter>;

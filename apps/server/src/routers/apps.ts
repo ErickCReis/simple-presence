@@ -2,7 +2,6 @@ import { env } from "cloudflare:workers";
 import { eventIterator } from "@orpc/server";
 import {
   type AppDetail,
-  type PresenceEventDto,
   appDetailSchema,
   createAppInputSchema,
   updateAppInputSchema,
@@ -14,6 +13,8 @@ import { nanoid } from "nanoid";
 import * as v from "valibot";
 import { db, SCHEMAS } from "@/db";
 import { protectedProcedure } from "@/lib/orpc";
+
+const APP_WATCH_POLL_INTERVAL_MS = 2000;
 
 function toAppDto(app: {
   id: string;
@@ -34,20 +35,26 @@ function toAppDto(app: {
   };
 }
 
-function toPresenceEventDto(event: {
-  id: number;
-  type: string;
-  timestamp: Date;
-  tag: string | null;
-  status: string | null;
-}): PresenceEventDto {
-  return {
-    id: event.id,
-    type: event.type,
-    timestamp: event.timestamp.toISOString(),
-    tag: event.tag,
-    status: event.status,
-  };
+function waitForNextPoll(signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    if (!signal || signal.aborted) {
+      resolve();
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      signal.removeEventListener("abort", handleAbort);
+      resolve();
+    }, APP_WATCH_POLL_INTERVAL_MS);
+
+    const handleAbort = () => {
+      clearTimeout(timeout);
+      signal.removeEventListener("abort", handleAbort);
+      resolve();
+    };
+
+    signal.addEventListener("abort", handleAbort, { once: true });
+  });
 }
 
 export const appsRouter = {
@@ -156,7 +163,8 @@ export const appsRouter = {
     .errors({
       NOT_FOUND: { message: "App not found" },
     })
-    .handler(async function* ({ input, context, errors }) {
+    .handler(async function* ({ input, context, errors, signal }) {
+      const abortSignal = signal;
       const [app] = await db
         .select()
         .from(SCHEMAS.app)
@@ -164,22 +172,23 @@ export const appsRouter = {
 
       if (!app) throw errors.NOT_FOUND();
 
+      const id = env.PRESENCE.idFromName(app.publicKey);
+      const presenceDO = env.PRESENCE.get(id);
       let lastUpdated = 0;
 
-      while (true) {
-        const id = env.PRESENCE.idFromName(app.publicKey);
-        const presenceDO = env.PRESENCE.get(id);
-        const [stats, events] = await Promise.all([presenceDO.getStats(), presenceDO.getEvents()]);
+      while (!abortSignal?.aborted) {
+        const stats = await presenceDO.getStats();
 
         if (stats.lastUpdated > lastUpdated) {
           lastUpdated = stats.lastUpdated;
+          const events = await presenceDO.getEvents();
           yield {
             tags: stats.tags,
-            events: events.map(toPresenceEventDto),
+            events,
           };
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await waitForNextPoll(abortSignal);
       }
     }),
 };

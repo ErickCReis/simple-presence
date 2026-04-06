@@ -1,5 +1,10 @@
+import type { PresenceData } from "@simple-presence/contracts";
 import { getOrCreateClientId } from "./client-id.js";
-import { acquireConnection, releaseConnection } from "./connection-manager.js";
+import {
+  type PresenceConnection,
+  acquireConnection,
+  releaseConnection,
+} from "./connection-manager.js";
 
 const DEFAULT_API_URL = "wss://simple-presence.erickr.dev/api/presence";
 
@@ -10,24 +15,17 @@ export interface PresenceConfig {
   onCountChange?: (count: number) => void;
 }
 
-export interface PresenceData {
-  tag: string;
-  status: "online" | "away";
-}
-
-interface PresenceClient {
-  update(input: { tag: string; status: "online" | "away" }): Promise<void>;
-  on(input: { tag: string }): Promise<AsyncIterable<number>> | AsyncIterable<number>;
-}
+export type { PresenceData } from "@simple-presence/contracts";
 
 export class SimplePresence {
   private config: PresenceConfig & { apiUrl: string };
   private currentStatus: "online" | "away" = "online";
   private isDestroyed = false;
   private currentCount = 0;
-  private client?: PresenceClient;
+  private connection?: PresenceConnection;
   private clientId: string;
   private readonly visibilityHandler: () => void;
+  private unsubscribeCountListener?: () => void;
 
   constructor(config: PresenceConfig) {
     this.config = {
@@ -42,12 +40,11 @@ export class SimplePresence {
     void this.initialize();
   }
 
-  private async initialize(): Promise<void> {
+  private async initialize() {
     try {
       await this.setupWebSocket();
       if (this.isDestroyed) return;
       this.setupVisibilityDetection();
-      void this.startListening();
       await this.updatePresence();
     } catch (error) {
       if (!this.isDestroyed) {
@@ -56,23 +53,31 @@ export class SimplePresence {
     }
   }
 
-  private async setupWebSocket(): Promise<void> {
-    const raw = await acquireConnection(
+  private async setupWebSocket() {
+    this.connection = await acquireConnection(
       this.config.apiUrl,
       this.config.appKey,
       this.config.tag,
       this.clientId,
     );
-    this.client = raw as PresenceClient;
+    this.unsubscribeCountListener = this.connection.subscribe((count) => {
+      if (this.isDestroyed || count === this.currentCount) {
+        return;
+      }
+
+      this.currentCount = count;
+      this.config.onCountChange?.(count);
+    });
+    this.currentCount = this.connection.getCurrentCount();
   }
 
-  private setupVisibilityDetection(): void {
+  private setupVisibilityDetection() {
     if (typeof document !== "undefined") {
       document.addEventListener("visibilitychange", this.visibilityHandler);
     }
   }
 
-  private handleVisibilityChange(): void {
+  private handleVisibilityChange() {
     if (document.hidden) {
       this.setStatus("away");
     } else {
@@ -80,67 +85,30 @@ export class SimplePresence {
     }
   }
 
-  private setStatus(status: PresenceData["status"]): void {
+  private setStatus(status: PresenceData["status"]) {
     if (this.currentStatus !== status) {
       this.currentStatus = status;
       void this.updatePresence();
     }
   }
 
-  private async updatePresence(): Promise<void> {
-    if (!this.client || this.isDestroyed) return;
-
-    try {
-      await this.client.update({
-        tag: this.config.tag,
-        status: this.currentStatus,
-      });
-    } catch (error) {
-      if (!this.isDestroyed) {
-        console.warn("Error updating presence:", error);
-      }
-    }
+  private async updatePresence() {
+    if (!this.connection || this.isDestroyed) return;
+    await this.connection.sendUpdate({
+      tag: this.config.tag,
+      status: this.currentStatus,
+    });
   }
 
-  private async startListening(): Promise<void> {
-    if (!this.client || this.isDestroyed) return;
-
-    try {
-      const subscription = await this.client.on({ tag: this.config.tag });
-      void this.processUpdates(subscription);
-    } catch (error) {
-      if (!this.isDestroyed) {
-        console.warn("Error starting presence listener:", error);
-      }
-    }
-  }
-
-  private async processUpdates(subscription: AsyncIterable<number>): Promise<void> {
-    try {
-      for await (const count of subscription) {
-        if (this.isDestroyed) break;
-
-        if (count !== this.currentCount) {
-          this.currentCount = count;
-          this.config.onCountChange?.(count);
-        }
-      }
-    } catch (error) {
-      if (!this.isDestroyed) {
-        console.warn("Error processing presence updates:", error);
-      }
-    }
-  }
-
-  public getStatus(): PresenceData["status"] {
+  public getStatus() {
     return this.currentStatus;
   }
 
-  public getCount(): number {
+  public getCount() {
     return this.currentCount;
   }
 
-  public async destroy(): Promise<void> {
+  public async destroy() {
     if (this.isDestroyed) return;
     this.isDestroyed = true;
 
@@ -148,17 +116,17 @@ export class SimplePresence {
       document.removeEventListener("visibilitychange", this.visibilityHandler);
     }
 
+    this.unsubscribeCountListener?.();
+    this.unsubscribeCountListener = undefined;
     releaseConnection(this.config.apiUrl, this.config.appKey, this.config.tag);
   }
 
-  public getClientId(): string {
+  public getClientId() {
     return this.clientId;
   }
 }
 
-export async function initPresence(
-  config: PresenceConfig & { tag: string },
-): Promise<SimplePresence> {
+export async function initPresence(config: PresenceConfig & { tag: string }) {
   if (typeof window === "undefined") {
     throw new Error("initPresence can only be called in the browser");
   }

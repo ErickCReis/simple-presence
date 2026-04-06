@@ -1,25 +1,26 @@
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/websocket";
+import type { PresenceClient, PresenceUpdateInput } from "@simple-presence/contracts";
 import { WebSocket as RWS } from "partysocket";
 
-// Intentionally avoid importing server router types here to prevent cross-package type coupling
-
-type ConnectionKey = string;
-
-interface ConnectionRecord {
+type ConnectionRecord = {
   websocket: RWS;
-  client: unknown;
+  client: PresenceClient;
   refCount: number;
   openPromise: Promise<void>;
-  url: string;
-}
+  currentCount: number;
+  listeners: Set<(count: number) => void>;
+  subscriptionStarted: boolean;
+};
 
-const connections = new Map<ConnectionKey, ConnectionRecord>();
+export type PresenceConnection = {
+  getCurrentCount(): number;
+  sendUpdate(input: PresenceUpdateInput): Promise<void>;
+  subscribe(listener: (count: number) => void): () => void;
+};
 
-function makeKey(apiUrl: string, appKey: string, tag: string): ConnectionKey {
-  // Important: include tag because server associates presence to a single tag per WebSocket session
-  return `${apiUrl}::${appKey}::${tag}`;
-}
+const connections = new Map<string, ConnectionRecord>();
+const MAX_CONNECTION_RETRIES = 5;
 
 function buildWebSocketUrl(apiUrl: string, appKey: string, clientId: string): string {
   const base = `${apiUrl}/${appKey}`;
@@ -28,62 +29,161 @@ function buildWebSocketUrl(apiUrl: string, appKey: string, clientId: string): st
   return url.toString();
 }
 
+async function startSubscription(record: ConnectionRecord, tag: string) {
+  record.subscriptionStarted = true;
+  try {
+    const subscription = await record.client.on({ tag });
+
+    for await (const count of subscription) {
+      record.currentCount = count;
+      for (const listener of record.listeners) {
+        listener(count);
+      }
+    }
+  } finally {
+    record.subscriptionStarted = false;
+  }
+}
+
 export async function acquireConnection(
   apiUrl: string,
   appKey: string,
   tag: string,
   clientId: string,
-): Promise<unknown> {
-  const key = makeKey(apiUrl, appKey, tag);
+): Promise<PresenceConnection> {
+  const key = `${apiUrl}::${appKey}::${tag}`;
   const existing = connections.get(key);
   if (existing) {
     existing.refCount++;
     await existing.openPromise;
-    return existing.client;
+    return {
+      getCurrentCount: () => existing.currentCount,
+      sendUpdate: async (input) => {
+        await existing.client.update(input);
+      },
+      subscribe: (listener) => {
+        existing.listeners.add(listener);
+        listener(existing.currentCount);
+
+        if (!existing.subscriptionStarted) {
+          void startSubscription(existing, tag).catch((error) => {
+            console.warn("Error processing presence updates:", error);
+          });
+        }
+
+        return () => existing.listeners.delete(listener);
+      },
+    };
   }
 
   const socketUrl = buildWebSocketUrl(apiUrl, appKey, clientId);
-  const websocket = new RWS(socketUrl);
-  const openPromise = new Promise<void>((resolve, reject) => {
-    websocket.onopen = () => resolve();
-    websocket.onerror = (error) => reject(error);
+  const websocket = new RWS(socketUrl, [], {
+    maxRetries: MAX_CONNECTION_RETRIES,
   });
+
+  const openPromise = new Promise<void>((resolve, reject) => {
+    let settled = false;
+
+    const cleanup = () => {
+      websocket.removeEventListener("open", handleOpen);
+      websocket.removeEventListener("error", handleError);
+      websocket.removeEventListener("close", handleCloseBeforeOpen);
+    };
+
+    const rejectOnce = (error: unknown) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(error);
+    };
+
+    const handleOpen = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve();
+    };
+
+    const handleError = (event: Event) => {
+      const error =
+        event instanceof ErrorEvent
+          ? event.error
+          : new Error("WebSocket connection failed before opening");
+      rejectOnce(error);
+    };
+
+    const handleCloseBeforeOpen = () => {
+      rejectOnce(new Error("WebSocket closed before opening"));
+    };
+
+    websocket.addEventListener("open", handleOpen);
+    websocket.addEventListener("error", handleError);
+    websocket.addEventListener("close", handleCloseBeforeOpen);
+  });
+
   const link = new RPCLink({ websocket: websocket as unknown as WebSocket });
-  const client = createORPCClient(link) as unknown;
+  const client = createORPCClient(link) as PresenceClient;
 
   const record: ConnectionRecord = {
     websocket,
     client,
     refCount: 1,
     openPromise,
-    url: socketUrl,
+    currentCount: 0,
+    listeners: new Set(),
+    subscriptionStarted: false,
   };
 
   connections.set(key, record);
 
-  // If the socket closes unexpectedly, drop the record so next acquire reconnects
-  websocket.onclose = () => {
+  websocket.addEventListener("close", () => {
     const current = connections.get(key);
     if (current && current.websocket === websocket) {
       connections.delete(key);
     }
-  };
+  });
 
-  await openPromise;
-  return client;
+  try {
+    await openPromise;
+    return {
+      getCurrentCount: () => record.currentCount,
+      sendUpdate: async (input) => {
+        await record.client.update(input);
+      },
+      subscribe: (listener) => {
+        record.listeners.add(listener);
+        listener(record.currentCount);
+
+        if (!record.subscriptionStarted) {
+          void startSubscription(record, tag).catch((error) => {
+            console.warn("Error processing presence updates:", error);
+          });
+        }
+
+        return () => record.listeners.delete(listener);
+      },
+    };
+  } catch (error) {
+    const current = connections.get(key);
+    if (current?.websocket === websocket) {
+      connections.delete(key);
+    }
+
+    websocket.close();
+    throw error;
+  }
 }
 
 export function releaseConnection(apiUrl: string, appKey: string, tag: string): void {
-  const key = makeKey(apiUrl, appKey, tag);
+  const key = `${apiUrl}::${appKey}::${tag}`;
   const record = connections.get(key);
   if (!record) return;
+
   record.refCount--;
-  if (record.refCount <= 0) {
-    try {
-      record.websocket.close();
-    } catch {
-      // ignore
-    }
-    connections.delete(key);
+  if (record.refCount > 0) {
+    return;
   }
+
+  record.websocket.close();
+  connections.delete(key);
 }
