@@ -31,6 +31,7 @@ export const server = await Worker("server", {
   assets: {
     _headers: "/*\n  Cache-Control: public, max-age=2592000",
     run_worker_first: ["/api/**"],
+    not_found_handling: "single-page-application",
   },
   bindings: {
     ASSETS: web,
