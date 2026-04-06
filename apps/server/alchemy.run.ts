@@ -5,7 +5,7 @@ import type { Presence } from "./src/durable-objects/presence";
 
 const isProd = process.argv.at(-2) === "--stage" && process.argv.at(-1) === "prod";
 
-const app = await alchemy("simple-presence-server", {
+const app = await alchemy("simple-presence", {
   stateStore: isProd ? (scope) => new CloudflareStateStore(scope) : undefined,
   password: process.env.ALCHEMY_SECRET_PASSPHRASE,
 });
