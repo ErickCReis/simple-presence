@@ -31,18 +31,27 @@ function buildWebSocketUrl(apiUrl: string, appKey: string, clientId: string): st
 
 async function startSubscription(record: ConnectionRecord, tag: string) {
   record.subscriptionStarted = true;
-  try {
-    const subscription = await record.client.on({ tag });
+  const subscription = await record.client.on({ tag });
 
-    for await (const count of subscription) {
-      record.currentCount = count;
-      for (const listener of record.listeners) {
-        listener(count);
+  void (async () => {
+    try {
+      for await (const count of subscription) {
+        record.currentCount = count;
+        for (const listener of record.listeners) {
+          listener(count);
+        }
       }
+    } finally {
+      record.subscriptionStarted = false;
     }
-  } finally {
-    record.subscriptionStarted = false;
-  }
+  })().catch((error) => {
+    console.warn("Error processing presence updates:", error);
+  });
+}
+
+async function ensureSubscription(record: ConnectionRecord, tag: string) {
+  if (record.subscriptionStarted) return;
+  await startSubscription(record, tag);
 }
 
 export async function acquireConnection(
@@ -56,6 +65,7 @@ export async function acquireConnection(
   if (existing) {
     existing.refCount++;
     await existing.openPromise;
+    await ensureSubscription(existing, tag);
     return {
       getCurrentCount: () => existing.currentCount,
       sendUpdate: async (input) => {
@@ -64,13 +74,6 @@ export async function acquireConnection(
       subscribe: (listener) => {
         existing.listeners.add(listener);
         listener(existing.currentCount);
-
-        if (!existing.subscriptionStarted) {
-          void startSubscription(existing, tag).catch((error) => {
-            console.warn("Error processing presence updates:", error);
-          });
-        }
-
         return () => existing.listeners.delete(listener);
       },
     };
@@ -145,6 +148,7 @@ export async function acquireConnection(
 
   try {
     await openPromise;
+    await ensureSubscription(record, tag);
     return {
       getCurrentCount: () => record.currentCount,
       sendUpdate: async (input) => {
@@ -153,13 +157,6 @@ export async function acquireConnection(
       subscribe: (listener) => {
         record.listeners.add(listener);
         listener(record.currentCount);
-
-        if (!record.subscriptionStarted) {
-          void startSubscription(record, tag).catch((error) => {
-            console.warn("Error processing presence updates:", error);
-          });
-        }
-
         return () => record.listeners.delete(listener);
       },
     };
