@@ -1,86 +1,118 @@
 # Simple Presence
 
-Real-time user presence tracking for any JavaScript application.
+Real-time presence tracking for browser apps.
 
-**SDK Packages:**
+Simple Presence gives you live per-page or per-section counts with a small client SDK, a hosted dashboard, and a realtime backend.
 
-- [`@simple-presence/core`](./packages/core) - Framework-agnostic presence client
-- [`@simple-presence/react`](./packages/react) - React hooks for presence tracking
+## Packages
 
-**Hosted Service:**
+- [`@simple-presence/core`](./packages/core) for framework-agnostic browser apps
+- [`@simple-presence/react`](./packages/react) for React apps
+
+## Hosted Service
 
 - Dashboard: [simple-presence.erickr.dev](https://simple-presence.erickr.dev)
-- API/WebSocket: `api.simple-presence.erickr.dev`
+- Hosted presence endpoint: `wss://simple-presence.erickr.dev/api/presence`
+
+Create an app in the dashboard and use its public key as `appKey` in the SDKs.
 
 ## Quick Start
 
 ### React
 
+```bash
+npm install @simple-presence/react
+```
+
 ```tsx
 import { usePresenceCount } from "@simple-presence/react";
 
 function OnlineUsers() {
-  const count = usePresenceCount("my-page", {
-    appKey: "your-app-key",
+  const count = usePresenceCount("landing-page", {
+    appKey: "your-public-app-key",
   });
 
   return <span>{count} users online</span>;
 }
 ```
 
-### Vanilla JS
+### Vanilla JavaScript
+
+```bash
+npm install @simple-presence/core
+```
 
 ```js
 import { SimplePresence } from "@simple-presence/core";
 
 const presence = new SimplePresence({
-  tag: "my-page",
-  appKey: "your-app-key",
+  tag: "landing-page",
+  appKey: "your-public-app-key",
   onCountChange: (count) => {
-    console.log("Online users:", count);
+    console.log("Users online:", count);
   },
 });
 
-// Clean up when done
-presence.destroy();
-```
-
-## How It Works
-
-1. **Create an app** at [simple-presence.erickr.dev](https://simple-presence.erickr.dev) and copy your app key.
-2. **Install the SDK** in your project.
-3. **Track presence** by tag — each tag represents a page or section.
-4. **Get live counts** via WebSocket callbacks.
-
-The SDK defaults to the hosted backend. For local development or self-hosting, pass `apiUrl`:
-
-```js
-new SimplePresence({
-  tag: "my-page",
-  appKey: "your-app-key",
-  apiUrl: "http://localhost:3000",
+window.addEventListener("beforeunload", () => {
+  void presence.destroy();
 });
 ```
 
-## Monorepo Structure
+## Custom Backend URL
 
+By default the SDKs connect to the hosted service. For local development or self-hosting, pass your base API URL and the client will connect to the matching websocket presence endpoint.
+
+```ts
+new SimplePresence({
+  tag: "landing-page",
+  appKey: "your-public-app-key",
+  apiUrl: "http://localhost:3000/api",
+});
 ```
+
+That produces a websocket connection to `ws://localhost:3000/api/presence`.
+
+## How It Works
+
+1. Create an app in the dashboard.
+2. Copy its public key.
+3. Track presence with a `tag` such as `"landing-page"` or `"pricing"`.
+4. Receive live counts as users join, leave, or go away.
+
+The core client also:
+
+- marks users as `away` when the page becomes hidden and `online` when it becomes visible again
+- reuses a single websocket connection for identical `(apiUrl, appKey, tag)` pairs
+- keeps a stable browser client id in local storage, with cookie and in-memory fallbacks
+
+## Monorepo
+
+```text
 apps/
-  server/   - Cloudflare Worker (Hono + oRPC + Durable Objects)
-  web/      - Dashboard (TanStack Start + React)
+  server/     Cloudflare Worker + Durable Objects backend
+  web/        Dashboard and marketing site
 packages/
-  contracts/ - Shared schemas and wire contracts (private)
-  config/    - Shared constants (private)
-  core/      - @simple-presence/core
-  react/     - @simple-presence/react
+  config/     Shared configuration
+  contracts/  Shared contracts and schemas
+  core/       Framework-agnostic SDK
+  react/      React hooks
 ```
 
-## Development
+## Local Development
+
+This repo uses Bun workspaces.
 
 ```bash
 bun install
+cp apps/server/.env.example apps/server/.env
+cp apps/web/.env.example apps/web/.env
 bun run dev
 ```
+
+Defaults from the examples:
+
+- web app: `http://localhost:3001`
+- server API: `http://localhost:3000/api`
 
 ## License
 

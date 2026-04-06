@@ -14,7 +14,6 @@
     "apps/server": {
       "name": "@simple-presence/server",
       "dependencies": {
-        "@orpc/client": "^1.13.13",
         "@orpc/server": "^1.13.13",
         "@simple-presence/config": "workspace:*",
         "@simple-presence/contracts": "workspace:*",
@@ -101,9 +100,10 @@
     },
     "packages/core": {
       "name": "@simple-presence/core",
-      "version": "0.1.0",
+      "version": "0.2.1",
       "dependencies": {
         "@orpc/client": "^1.13.13",
+        "@simple-presence/contracts": "workspace:*",
         "partysocket": "^1.1.16",
       },
       "devDependencies": {
@@ -113,7 +113,7 @@
     },
     "packages/react": {
       "name": "@simple-presence/react",
-      "version": "0.1.0",
+      "version": "0.2.1",
       "dependencies": {
         "@simple-presence/core": "workspace:*",
       },

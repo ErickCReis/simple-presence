@@ -1,12 +1,14 @@
 # @simple-presence/react
 
-React hooks for real-time user presence tracking.
+React hook for realtime presence counts.
 
 ## Install
 
 ```bash
-npm install @simple-presence/react @simple-presence/core
+npm install @simple-presence/react
 ```
+
+`react` is a peer dependency and must be `>= 18`.
 
 ## Usage
 
@@ -14,44 +16,53 @@ npm install @simple-presence/react @simple-presence/core
 import { usePresenceCount } from "@simple-presence/react";
 
 function OnlineUsers() {
-  const count = usePresenceCount("my-page", {
-    appKey: "your-app-key",
+  const count = usePresenceCount("landing-page", {
+    appKey: "your-public-app-key",
   });
 
   return <span>{count} users online</span>;
 }
 ```
 
+The hook returns `0` until the first presence update arrives.
+
 ## API
 
 ### `usePresenceCount(tag, options)`
 
-Returns the current online count for the given tag.
+```ts
+function usePresenceCount(
+  tag: string,
+  options: {
+    appKey: string;
+    apiUrl?: string;
+  },
+): number;
+```
 
-| Param            | Type      | Description           |
-| ---------------- | --------- | --------------------- |
-| `tag`            | `string`  | The tag to track      |
-| `options.appKey` | `string`  | Your app's public key |
-| `options.apiUrl` | `string?` | Override the API URL  |
+| Argument | Type | Description |
+| --- | --- | --- |
+| `tag` | `string` | Logical bucket to track |
+| `options.appKey` | `string` | Public app key from the Simple Presence dashboard |
+| `options.apiUrl` | `string \| undefined` | Base API URL for a custom backend, such as `http://localhost:3000/api` |
 
-**Returns:** `number` — the current online count for the tag.
+Returns the current live count for that tag.
 
-The hook manages the `SimplePresence` lifecycle automatically — it creates the instance on mount and destroys it on unmount.
-
-## Override API URL
-
-For local development or self-hosting:
+## Custom Backend URL
 
 ```tsx
-const count = usePresenceCount("my-page", {
-  appKey: "your-app-key",
-  apiUrl: "http://localhost:3000",
+const count = usePresenceCount("landing-page", {
+  appKey: "your-public-app-key",
+  apiUrl: "http://localhost:3000/api",
 });
 ```
 
-## Requirements
+The hook creates an internal `SimplePresence` instance and cleans it up automatically when `tag`, `appKey`, `apiUrl`, or the component lifecycle changes.
 
-- React >= 18
+## Notes
+
+- Use this in client-side React code.
+- The default hosted presence endpoint is `wss://simple-presence.erickr.dev/api/presence`.
 
 ## License
 
