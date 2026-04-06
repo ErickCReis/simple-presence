@@ -41,12 +41,12 @@ type PresenceConfig = {
 };
 ```
 
-| Option | Type | Required | Description |
-| --- | --- | --- | --- |
-| `tag` | `string` | Yes | Logical bucket to track, such as `"landing-page"` or `"docs"` |
-| `appKey` | `string` | Yes | Public app key from the Simple Presence dashboard |
-| `apiUrl` | `string` | No | Base API URL for a custom backend, such as `http://localhost:3000/api` |
-| `onCountChange` | `(count: number) => void` | No | Called whenever the live count changes |
+| Option          | Type                      | Required | Description                                                            |
+| --------------- | ------------------------- | -------- | ---------------------------------------------------------------------- |
+| `tag`           | `string`                  | Yes      | Logical bucket to track, such as `"landing-page"` or `"docs"`          |
+| `appKey`        | `string`                  | Yes      | Public app key from the Simple Presence dashboard                      |
+| `apiUrl`        | `string`                  | No       | Base API URL for a custom backend, such as `http://localhost:3000/api` |
+| `onCountChange` | `(count: number) => void` | No       | Called whenever the live count changes                                 |
 
 When `apiUrl` is provided, the client converts `http://` to `ws://`, `https://` to `wss://`, and appends `/presence`.
 

@@ -40,10 +40,10 @@ function usePresenceCount(
 ): number;
 ```
 
-| Argument | Type | Description |
-| --- | --- | --- |
-| `tag` | `string` | Logical bucket to track |
-| `options.appKey` | `string` | Public app key from the Simple Presence dashboard |
+| Argument         | Type                  | Description                                                            |
+| ---------------- | --------------------- | ---------------------------------------------------------------------- |
+| `tag`            | `string`              | Logical bucket to track                                                |
+| `options.appKey` | `string`              | Public app key from the Simple Presence dashboard                      |
 | `options.apiUrl` | `string \| undefined` | Base API URL for a custom backend, such as `http://localhost:3000/api` |
 
 Returns the current live count for that tag.
