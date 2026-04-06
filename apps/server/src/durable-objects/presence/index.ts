@@ -136,7 +136,8 @@ export class Presence extends DurableObject<Env> {
     }
 
     const tagStatsBeforeUpdate = this.collectTagStats();
-    const isNewTag = previousPresence?.tag !== presence.tag && !tagStatsBeforeUpdate.has(presence.tag);
+    const isNewTag =
+      previousPresence?.tag !== presence.tag && !tagStatsBeforeUpdate.has(presence.tag);
 
     if (isNewTag && tagStatsBeforeUpdate.size >= FREE_PLAN_LIMITS.maxTagsPerApp) {
       throw new Error(
@@ -162,7 +163,9 @@ export class Presence extends DurableObject<Env> {
     return {
       currentTagCount: tagStats.get(presence.tag)?.sessions ?? 0,
       previousTag: previousPresence?.tag,
-      previousTagCount: previousPresence?.tag ? (tagStats.get(previousPresence.tag)?.sessions ?? 0) : 0,
+      previousTagCount: previousPresence?.tag
+        ? (tagStats.get(previousPresence.tag)?.sessions ?? 0)
+        : 0,
     };
   }
 

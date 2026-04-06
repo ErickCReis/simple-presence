@@ -3,6 +3,9 @@ name: Publish
 on:
   push:
     branches: [main]
+    paths:
+      - packages/core/package.json
+      - packages/react/package.json
 
 permissions:
   contents: read
