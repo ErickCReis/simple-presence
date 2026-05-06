@@ -40,7 +40,14 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body>
-        <RootProvider search={{ enabled: false }}>
+        <RootProvider
+          search={{ enabled: false }}
+          theme={{
+            defaultTheme: "dark",
+            forcedTheme: "dark",
+            enableSystem: false,
+          }}
+        >
           <Outlet />
           <Toaster richColors />
         </RootProvider>

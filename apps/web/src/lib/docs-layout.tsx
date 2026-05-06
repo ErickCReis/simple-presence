@@ -6,6 +6,9 @@ export function baseOptions(): BaseLayoutProps {
       title: "Simple Presence",
     },
     githubUrl: "https://github.com/simple-presence/simple-presence",
+    themeSwitch: {
+      enabled: false,
+    },
     links: [
       {
         text: "Dashboard",
