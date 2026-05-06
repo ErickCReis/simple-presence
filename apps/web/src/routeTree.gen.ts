@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as LandingIndexRouteImport } from './routes/_landing/index'
+import { Route as DocsSplatRouteImport } from './routes/docs/$'
 import { Route as DashboardAppIdRouteImport } from './routes/dashboard/$appId'
+import { Route as ApiSearchRouteImport } from './routes/api/search'
 import { Route as LoginSignUpRouteImport } from './routes/_login/sign-up'
 import { Route as LoginSignInRouteImport } from './routes/_login/sign-in'
 
@@ -31,10 +33,20 @@ const LandingIndexRoute = LandingIndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsSplatRoute = DocsSplatRouteImport.update({
+  id: '/docs/$',
+  path: '/docs/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardAppIdRoute = DashboardAppIdRouteImport.update({
   id: '/$appId',
   path: '/$appId',
   getParentRoute: () => DashboardRouteRoute,
+} as any)
+const ApiSearchRoute = ApiSearchRouteImport.update({
+  id: '/api/search',
+  path: '/api/search',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LoginSignUpRoute = LoginSignUpRouteImport.update({
   id: '/_login/sign-up',
@@ -51,14 +63,18 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/sign-in': typeof LoginSignInRoute
   '/sign-up': typeof LoginSignUpRoute
+  '/api/search': typeof ApiSearchRoute
   '/dashboard/$appId': typeof DashboardAppIdRoute
+  '/docs/$': typeof DocsSplatRoute
   '/': typeof LandingIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/sign-in': typeof LoginSignInRoute
   '/sign-up': typeof LoginSignUpRoute
+  '/api/search': typeof ApiSearchRoute
   '/dashboard/$appId': typeof DashboardAppIdRoute
+  '/docs/$': typeof DocsSplatRoute
   '/': typeof LandingIndexRoute
   '/dashboard': typeof DashboardIndexRoute
 }
@@ -67,7 +83,9 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/_login/sign-in': typeof LoginSignInRoute
   '/_login/sign-up': typeof LoginSignUpRoute
+  '/api/search': typeof ApiSearchRoute
   '/dashboard/$appId': typeof DashboardAppIdRoute
+  '/docs/$': typeof DocsSplatRoute
   '/_landing/': typeof LandingIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
@@ -77,17 +95,28 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/sign-in'
     | '/sign-up'
+    | '/api/search'
     | '/dashboard/$appId'
+    | '/docs/$'
     | '/'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/sign-in' | '/sign-up' | '/dashboard/$appId' | '/' | '/dashboard'
+  to:
+    | '/sign-in'
+    | '/sign-up'
+    | '/api/search'
+    | '/dashboard/$appId'
+    | '/docs/$'
+    | '/'
+    | '/dashboard'
   id:
     | '__root__'
     | '/dashboard'
     | '/_login/sign-in'
     | '/_login/sign-up'
+    | '/api/search'
     | '/dashboard/$appId'
+    | '/docs/$'
     | '/_landing/'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
@@ -96,6 +125,8 @@ export interface RootRouteChildren {
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
   LoginSignInRoute: typeof LoginSignInRoute
   LoginSignUpRoute: typeof LoginSignUpRoute
+  ApiSearchRoute: typeof ApiSearchRoute
+  DocsSplatRoute: typeof DocsSplatRoute
   LandingIndexRoute: typeof LandingIndexRoute
 }
 
@@ -122,12 +153,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LandingIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/$': {
+      id: '/docs/$'
+      path: '/docs/$'
+      fullPath: '/docs/$'
+      preLoaderRoute: typeof DocsSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/$appId': {
       id: '/dashboard/$appId'
       path: '/$appId'
       fullPath: '/dashboard/$appId'
       preLoaderRoute: typeof DashboardAppIdRouteImport
       parentRoute: typeof DashboardRouteRoute
+    }
+    '/api/search': {
+      id: '/api/search'
+      path: '/api/search'
+      fullPath: '/api/search'
+      preLoaderRoute: typeof ApiSearchRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_login/sign-up': {
       id: '/_login/sign-up'
@@ -164,6 +209,8 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
   LoginSignInRoute: LoginSignInRoute,
   LoginSignUpRoute: LoginSignUpRoute,
+  ApiSearchRoute: ApiSearchRoute,
+  DocsSplatRoute: DocsSplatRoute,
   LandingIndexRoute: LandingIndexRoute,
 }
 export const routeTree = rootRouteImport

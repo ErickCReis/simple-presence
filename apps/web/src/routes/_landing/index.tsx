@@ -1,6 +1,6 @@
+import { ArrowRight, Check, Code, GlobeSimple, Lightning } from "@phosphor-icons/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HeroDemo } from "@/routes/_landing/-components/hero-demo";
 import { QuickGuide } from "@/routes/_landing/-components/quick-guide";
 
@@ -25,239 +25,220 @@ export const Route = createFileRoute("/_landing/")({
   }),
 });
 
+const features = [
+  {
+    icon: Lightning,
+    title: "Sub-millisecond",
+    description:
+      "Powered by Cloudflare Durable Objects. Presence updates propagate instantly across the globe.",
+  },
+  {
+    icon: Code,
+    title: "3 lines of code",
+    description:
+      "Install the SDK, wrap your component, done. No WebSocket boilerplate, no infrastructure to manage.",
+  },
+  {
+    icon: GlobeSimple,
+    title: "Any framework",
+    description:
+      "First-class React hooks plus a framework-agnostic core SDK. Works everywhere JavaScript runs.",
+  },
+];
+
+const planFeatures = [
+  "3 applications",
+  "100 simultaneous users",
+  "Real-time presence updates",
+  "Dashboard & analytics",
+];
+
 function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
-      {/* Hero Section */}
-      <section className="relative flex h-svh items-center justify-center">
-        <div className="text-center">
-          <h1 className="mb-6 font-bold text-4xl text-foreground md:text-6xl">Simple Presence</h1>
-          <p className="mx-auto mb-8 max-w-2xl text-muted-foreground text-xl md:text-2xl">
-            Add real-time user presence to any JavaScript application with just a few lines of code
+    <div className="min-h-screen bg-gray-950">
+      <nav className="fixed top-0 right-0 left-0 z-50 border-b border-white/[0.06] bg-gray-950/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+          <span className="font-heading text-base tracking-widest text-white uppercase">
+            Simple Presence
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-white"
+              render={<Link to="/docs" />}
+              nativeButton={false}
+            >
+              Documentation
+            </Button>
+            <Button
+              size="sm"
+              className="border-transparent bg-white text-gray-950 hover:bg-gray-200"
+              render={<Link to="/dashboard" />}
+              nativeButton={false}
+            >
+              Get Started
+            </Button>
+          </div>
+        </div>
+      </nav>
+
+      <section className="relative flex min-h-svh items-center justify-center overflow-hidden pt-14">
+        <div className="landing-dots pointer-events-none absolute inset-0" />
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 60% 50% at 50% 55%, rgba(52,211,153,0.06) 0%, transparent 100%)",
+          }}
+        />
+
+        <div className="relative z-10 px-6 text-center">
+          <h1 className="landing-fade-in font-heading text-5xl font-bold tracking-tight text-white md:text-7xl">
+            Simple Presence
+          </h1>
+          <p
+            className="landing-fade-in mx-auto mt-5 max-w-lg text-lg text-gray-400 md:text-xl"
+            style={{ animationDelay: "0.1s" }}
+          >
+            Real-time user presence for any JavaScript app.{" "}
+            <span className="text-gray-300">Drop in a few lines. See who's here.</span>
           </p>
 
           <HeroDemo />
 
-          <div className="flex flex-col justify-center gap-4 sm:flex-row">
+          <div
+            className="landing-fade-in flex flex-col items-center justify-center gap-3 sm:flex-row"
+            style={{ animationDelay: "0.4s" }}
+          >
             <Button
               size="lg"
-              className="text-lg"
+              className="gap-2 border-transparent bg-white px-6 text-gray-950 hover:bg-gray-200"
               render={<Link to="/dashboard" />}
               nativeButton={false}
             >
               Start Free
+              <ArrowRight weight="bold" className="size-4" />
             </Button>
-            <Button variant="outline" size="lg" className="text-lg">
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-white/15 text-gray-300 hover:bg-white/5 hover:text-white"
+              render={<Link to="/docs" />}
+              nativeButton={false}
+            >
               View Documentation
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Value Proposition Section */}
-      <section className="px-4 py-20">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="mb-12 text-center font-bold text-3xl text-foreground md:text-4xl">
+      <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+      <section className="relative px-6 py-32">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="mb-4 text-center font-heading text-3xl font-bold text-white md:text-4xl">
             Why Simple Presence?
           </h2>
-          <div className="grid gap-8 md:grid-cols-3">
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                  <svg
-                    className="h-8 w-8 text-blue-600 dark:text-blue-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <title>Lightning Fast Icon</title>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
+          <p className="mx-auto mb-20 max-w-md text-center text-gray-500">
+            A hosted presence service that gets out of your way.
+          </p>
+          <div className="grid gap-12 md:grid-cols-3 md:gap-16">
+            {features.map((feature) => (
+              <div key={feature.title} className="text-center">
+                <div className="mx-auto mb-6 inline-flex size-14 items-center justify-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10">
+                  <feature.icon className="size-7 text-emerald-400" weight="duotone" />
                 </div>
-                <h3 className="mb-2 font-semibold text-foreground text-xl">Lightning Fast</h3>
-                <p className="text-muted-foreground">
-                  Real-time updates in milliseconds, not seconds
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                  <svg
-                    className="h-8 w-8 text-green-600 dark:text-green-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <title>Simple Setup Icon</title>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="mb-2 font-semibold text-foreground text-xl">Simple Setup</h3>
-                <p className="text-muted-foreground">Just a few lines of code to get started</p>
-              </CardContent>
-            </Card>
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                  <svg
-                    className="h-8 w-8 text-purple-600 dark:text-purple-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <title>Framework Agnostic Icon</title>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="mb-2 font-semibold text-foreground text-xl">Framework Agnostic</h3>
-                <p className="text-muted-foreground">
-                  Works with React, Vue, Angular, or vanilla JS
-                </p>
-              </CardContent>
-            </Card>
+                <h3 className="mb-3 font-heading text-xl font-semibold text-white">
+                  {feature.title}
+                </h3>
+                <p className="leading-relaxed text-gray-400">{feature.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Quick Guide Section */}
-      <section className="px-4 py-20">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="mb-12 text-center font-bold text-3xl text-foreground md:text-4xl">
-            Get Started in Minutes
+      <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+      <section className="relative px-6 py-32">
+        <div className="landing-dots pointer-events-none absolute inset-0 opacity-60" />
+        <div className="relative mx-auto max-w-3xl">
+          <h2 className="mb-4 text-center font-heading text-3xl font-bold text-white md:text-4xl">
+            Get started in minutes
           </h2>
+          <p className="mx-auto mb-12 max-w-md text-center text-gray-500">
+            Install the SDK and start tracking presence. That's it.
+          </p>
+
+          <div className="mb-6 flex items-center justify-center">
+            <code className="rounded-lg border border-white/10 bg-white/[0.03] px-5 py-2.5 font-mono text-sm text-gray-300">
+              npm install @simple-presence/react
+            </code>
+          </div>
 
           <QuickGuide />
+
+          <p className="mt-8 text-center text-sm text-gray-600">
+            No configuration files. No database. No WebSocket setup.
+          </p>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="px-4 py-20">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="mb-12 font-bold text-3xl text-foreground md:text-4xl">
-            Start Free, Scale Later
+      <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+      <section className="px-6 py-32">
+        <div className="mx-auto max-w-md text-center">
+          <h2 className="mb-4 font-heading text-3xl font-bold text-white md:text-4xl">
+            Start free
           </h2>
-          <Card className="mx-auto max-w-md">
-            <CardHeader>
-              <CardTitle className="text-2xl">Free Plan</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-6 font-bold text-4xl text-primary">$0</div>
-              <ul className="mb-8 space-y-3 text-left">
-                <li className="flex items-center">
-                  <svg
-                    className="mr-3 h-5 w-5 text-green-500"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    aria-hidden="true"
-                  >
-                    <title>Checkmark</title>
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  2 Applications
+          <p className="mb-12 text-lg text-gray-500">No credit card. No catch. Just ship.</p>
+
+          <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-8">
+            <div className="font-heading text-5xl font-bold text-white">$0</div>
+            <div className="mt-1 text-sm text-gray-600">forever</div>
+
+            <ul className="my-8 space-y-4 text-left">
+              {planFeatures.map((feature) => (
+                <li key={feature} className="flex items-center gap-3 text-gray-300">
+                  <Check weight="bold" className="size-5 shrink-0 text-emerald-400" />
+                  {feature}
                 </li>
-                <li className="flex items-center">
-                  <svg
-                    className="mr-3 h-5 w-5 text-green-500"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    aria-hidden="true"
-                  >
-                    <title>Checkmark</title>
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  100 Users Simultaneous
-                </li>
-                <li className="flex items-center">
-                  <svg
-                    className="mr-3 h-5 w-5 text-green-500"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    aria-hidden="true"
-                  >
-                    <title>Checkmark</title>
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Real-time Updates
-                </li>
-                <li className="flex items-center">
-                  <svg
-                    className="mr-3 h-5 w-5 text-green-500"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                    aria-hidden="true"
-                  >
-                    <title>Checkmark</title>
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Basic Analytics
-                </li>
-              </ul>
-              <Button size="lg" className="w-full text-lg">
-                Start Free
-              </Button>
-              <p className="mt-4 text-muted-foreground text-sm">
-                Paid plans coming soon with advanced features
-              </p>
-            </CardContent>
-          </Card>
+              ))}
+            </ul>
+
+            <Button
+              size="lg"
+              className="w-full gap-2 border-transparent bg-white text-gray-950 hover:bg-gray-200"
+              render={<Link to="/dashboard" />}
+              nativeButton={false}
+            >
+              Get Started
+              <ArrowRight weight="bold" className="size-4" />
+            </Button>
+            <p className="mt-4 text-xs text-gray-600">
+              Paid plans coming soon with advanced features
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="px-4 py-12">
-        <div className="mx-auto max-w-6xl text-center">
-          <div className="flex flex-col items-center justify-center space-y-4 text-muted-foreground text-sm md:flex-row md:space-x-8 md:space-y-0">
-            <a href="/#" className="transition-colors hover:text-primary">
+      <footer className="border-t border-white/[0.06] px-6 py-8">
+        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 md:flex-row">
+          <span className="font-heading text-sm tracking-widest text-white/30 uppercase">
+            © {new Date().getFullYear()} Simple Presence
+          </span>
+          <div className="flex gap-6 text-sm text-gray-500">
+            <Link to="/docs" className="transition-colors hover:text-gray-300">
               Documentation
+            </Link>
+            <a href="/#" className="transition-colors hover:text-gray-300">
+              GitHub
             </a>
-            <a href="/#" className="transition-colors hover:text-primary">
+            <a href="/#" className="transition-colors hover:text-gray-300">
               Contact
             </a>
-            <a href="/#" className="transition-colors hover:text-primary">
-              Terms of Use
-            </a>
-            <a href="/#" className="transition-colors hover:text-primary">
-              Privacy
-            </a>
           </div>
-          <p className="mt-4 text-muted-foreground text-sm">
-            © 2025 Simple Presence. All rights reserved.
-          </p>
         </div>
       </footer>
     </div>

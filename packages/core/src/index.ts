@@ -1,4 +1,4 @@
-import type { PresenceData } from "@simple-presence/contracts";
+import type { CountSnapshot, PresenceData, TagPeak } from "@simple-presence/contracts";
 import { getOrCreateClientId } from "./client-id.js";
 import {
   type PresenceConnection,
@@ -15,7 +15,7 @@ export interface PresenceConfig {
   onCountChange?: (count: number) => void;
 }
 
-export type { PresenceData } from "@simple-presence/contracts";
+export type { CountSnapshot, PresenceData, TagPeak } from "@simple-presence/contracts";
 
 export class SimplePresence {
   private config: PresenceConfig & { apiUrl: string };
@@ -119,6 +119,16 @@ export class SimplePresence {
     this.unsubscribeCountListener?.();
     this.unsubscribeCountListener = undefined;
     releaseConnection(this.config.apiUrl, this.config.appKey, this.config.tag);
+  }
+
+  public async getHistory(): Promise<CountSnapshot[]> {
+    if (!this.connection) return [];
+    return this.connection.getHistory();
+  }
+
+  public async getStats(): Promise<TagPeak> {
+    if (!this.connection) return { peak: 0, peakAt: null };
+    return this.connection.getStats();
   }
 
   public getClientId() {

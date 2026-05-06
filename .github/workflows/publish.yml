@@ -6,6 +6,7 @@ on:
     paths:
       - packages/core/package.json
       - packages/react/package.json
+      - packages/solid-js/package.json
 
 permissions:
   contents: read
@@ -30,4 +31,7 @@ jobs:
         run: npm publish --provenance --access public
       - name: Publish @simple-presence/react
         working-directory: packages/react
+        run: npm publish --provenance --access public
+      - name: Publish @simple-presence/solid-js
+        working-directory: packages/solid-js
         run: npm publish --provenance --access public

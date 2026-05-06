@@ -1,7 +1,6 @@
 import { sql } from "drizzle-orm";
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-// Timeseries table to track all presence update events
 export const presenceEvent = sqliteTable(
   "presence_event",
   {
@@ -9,26 +8,22 @@ export const presenceEvent = sqliteTable(
     type: text("type", { enum: ["update", "connect", "disconnect"] }).notNull(),
     tag: text("tag"),
     status: text("status", { enum: ["online", "away"] }),
-    sessionId: text("session_id").notNull(), // WebSocket connection identifier
+    sessionId: text("session_id").notNull(),
     timestamp: integer("timestamp", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
-    // Optional metadata for analytics
     userAgent: text("user_agent"),
-    duration: integer("duration"), // How long the session lasted (in seconds)
+    duration: integer("duration"),
   },
   (table) => [
-    // Primary indexes for common queries
     index("presence_event_tag_idx").on(table.tag),
     index("presence_event_timestamp_idx").on(table.timestamp),
     index("presence_event_session_id_idx").on(table.sessionId),
-    // Composite indexes for analytics
     index("presence_event_tag_timestamp_idx").on(table.tag, table.timestamp),
     index("presence_event_status_timestamp_idx").on(table.status, table.timestamp),
   ],
 );
 
-// Tags analytics table to store aggregated tag information
 export const presenceTag = sqliteTable("presence_tag", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -36,7 +31,6 @@ export const presenceTag = sqliteTable("presence_tag", {
   totalUpdates: integer("total_updates").notNull().default(0),
   peakConcurrentConnections: integer("peak_concurrent_connections").notNull().default(0),
   peakReachedAt: integer("peak_reached_at", { mode: "timestamp" }),
-  // Additional metadata
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
@@ -45,7 +39,23 @@ export const presenceTag = sqliteTable("presence_tag", {
     .default(sql`(unixepoch())`),
 });
 
+export const countSnapshot = sqliteTable(
+  "count_snapshot",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    tag: text("tag").notNull(),
+    sessions: integer("sessions").notNull(),
+    online: integer("online").notNull(),
+    away: integer("away").notNull(),
+    timestamp: integer("timestamp", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [index("count_snapshot_tag_timestamp_idx").on(table.tag, table.timestamp)],
+);
+
 export const SCHEMAS = {
   presenceEvent,
   presenceTag,
+  countSnapshot,
 };

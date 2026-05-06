@@ -1,6 +1,11 @@
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/websocket";
-import type { PresenceClient, PresenceUpdateInput } from "@simple-presence/contracts";
+import type {
+  CountSnapshot,
+  PresenceClient,
+  PresenceUpdateInput,
+  TagPeak,
+} from "@simple-presence/contracts";
 import { WebSocket as RWS } from "partysocket";
 
 type ConnectionRecord = {
@@ -17,6 +22,8 @@ export type PresenceConnection = {
   getCurrentCount(): number;
   sendUpdate(input: PresenceUpdateInput): Promise<void>;
   subscribe(listener: (count: number) => void): () => void;
+  getHistory(): Promise<CountSnapshot[]>;
+  getStats(): Promise<TagPeak>;
 };
 
 const connections = new Map<string, ConnectionRecord>();
@@ -54,6 +61,22 @@ async function ensureSubscription(record: ConnectionRecord, tag: string) {
   await startSubscription(record, tag);
 }
 
+function buildConnection(record: ConnectionRecord, tag: string): PresenceConnection {
+  return {
+    getCurrentCount: () => record.currentCount,
+    sendUpdate: async (input) => {
+      await record.client.update(input);
+    },
+    subscribe: (listener) => {
+      record.listeners.add(listener);
+      listener(record.currentCount);
+      return () => record.listeners.delete(listener);
+    },
+    getHistory: () => record.client.history({ tag }),
+    getStats: () => record.client.stats({ tag }),
+  };
+}
+
 export async function acquireConnection(
   apiUrl: string,
   appKey: string,
@@ -66,17 +89,7 @@ export async function acquireConnection(
     existing.refCount++;
     await existing.openPromise;
     await ensureSubscription(existing, tag);
-    return {
-      getCurrentCount: () => existing.currentCount,
-      sendUpdate: async (input) => {
-        await existing.client.update(input);
-      },
-      subscribe: (listener) => {
-        existing.listeners.add(listener);
-        listener(existing.currentCount);
-        return () => existing.listeners.delete(listener);
-      },
-    };
+    return buildConnection(existing, tag);
   }
 
   const socketUrl = buildWebSocketUrl(apiUrl, appKey, clientId);
@@ -149,17 +162,7 @@ export async function acquireConnection(
   try {
     await openPromise;
     await ensureSubscription(record, tag);
-    return {
-      getCurrentCount: () => record.currentCount,
-      sendUpdate: async (input) => {
-        await record.client.update(input);
-      },
-      subscribe: (listener) => {
-        record.listeners.add(listener);
-        listener(record.currentCount);
-        return () => record.listeners.delete(listener);
-      },
-    };
+    return buildConnection(record, tag);
   } catch (error) {
     const current = connections.get(key);
     if (current?.websocket === websocket) {

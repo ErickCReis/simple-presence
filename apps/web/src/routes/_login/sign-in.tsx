@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import * as v from "valibot";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { queryClient } from "@/lib/orpc";
+import { AuthShell } from "./-components/auth-shell";
 
 export const Route = createFileRoute("/_login/sign-in")({
   component: SignIn,
@@ -49,86 +50,88 @@ function SignIn() {
   });
 
   return (
-    <div className="mx-auto mt-10 w-full max-w-md p-6">
-      <h1 className="mb-6 text-center font-bold text-3xl">Welcome Back</h1>
-
+    <AuthShell
+      eyebrow="Welcome back"
+      title="Sign in to your account"
+      description="Access your dashboard to manage applications, view live connections, and monitor presence across your sites."
+      footerPrompt="Need an account?"
+      footerTo="/sign-up"
+      footerLabel="Sign up"
+    >
       <form
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
           void form.handleSubmit();
         }}
-        className="space-y-4"
+        className="space-y-5"
       >
-        <div>
-          <form.Field name="email">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Email</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="email"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
-            )}
-          </form.Field>
-        </div>
+        <form.Field name="email">
+          {(field) => (
+            <div className="space-y-2">
+              <Label
+                htmlFor={field.name}
+                className="text-xs tracking-widest text-white/50 uppercase"
+              >
+                Email
+              </Label>
+              <Input
+                id={field.name}
+                name={field.name}
+                type="email"
+                placeholder="you@company.com"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+              />
+              {field.state.meta.errors.map((error) => (
+                <p key={error?.message} className="text-sm text-destructive">
+                  {error?.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </form.Field>
 
-        <div>
-          <form.Field name="password">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Password</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="password"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
-            )}
-          </form.Field>
-        </div>
+        <form.Field name="password">
+          {(field) => (
+            <div className="space-y-2">
+              <Label
+                htmlFor={field.name}
+                className="text-xs tracking-widest text-white/50 uppercase"
+              >
+                Password
+              </Label>
+              <Input
+                id={field.name}
+                name={field.name}
+                type="password"
+                placeholder="••••••••"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+              />
+              {field.state.meta.errors.map((error) => (
+                <p key={error?.message} className="text-sm text-destructive">
+                  {error?.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </form.Field>
 
         <form.Subscribe>
           {(state) => (
             <Button
               type="submit"
-              className="w-full"
+              className="mt-2 w-full border-transparent bg-white text-gray-950 hover:bg-gray-200"
               disabled={!state.canSubmit || state.isSubmitting}
             >
-              {state.isSubmitting ? "Submitting..." : "Sign In"}
+              {state.isSubmitting ? "Signing in..." : "Sign in"}
             </Button>
           )}
         </form.Subscribe>
       </form>
-
-      <div className="mt-4 text-center">
-        <Button
-          variant="link"
-          render={<Link to="/sign-up" />}
-          nativeButton={false}
-          className="text-indigo-600 hover:text-indigo-800"
-        >
-          Need an account? Sign Up
-        </Button>
-      </div>
-    </div>
+    </AuthShell>
   );
 }

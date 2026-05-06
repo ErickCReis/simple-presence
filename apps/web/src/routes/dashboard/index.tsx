@@ -1,12 +1,11 @@
 import { FREE_PLAN_LIMITS } from "@simple-presence/config";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Copy, Eye, Plus, Trash2 } from "lucide-react";
+import { Copy, Eye, KeyRound, Layers, Plus, Trash2, Wifi } from "lucide-react";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +23,37 @@ export const Route = createFileRoute("/dashboard/")({
   component: RouteComponent,
 });
 
+function StatCard({
+  label,
+  value,
+  limit,
+  icon: Icon,
+  accentClass,
+}: {
+  label: string;
+  value: number;
+  limit?: number;
+  icon: React.ComponentType<{ className?: string }>;
+  accentClass: string;
+}) {
+  return (
+    <div className="group relative overflow-hidden border border-white/[0.06] bg-white/[0.02] p-5 transition-colors hover:bg-white/[0.04]">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs tracking-widest text-white/40 uppercase">{label}</p>
+          <p className="mt-2 font-heading text-3xl tracking-tight text-white">
+            {value}
+            {limit != null && <span className="ml-1 text-base text-white/20">/ {limit}</span>}
+          </p>
+        </div>
+        <div className={`flex size-9 items-center justify-center rounded-full ${accentClass}`}>
+          <Icon className="size-4" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RouteComponent() {
   const queryClient = useQueryClient();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -32,12 +62,10 @@ function RouteComponent() {
   const appNameId = useId();
   const appDescriptionId = useId();
 
-  // Query for apps
   const appsQuery = useQuery(orpcUtils.apps.list.queryOptions());
   const appsCount = appsQuery.data?.length ?? 0;
   const reachedAppLimit = appsCount >= FREE_PLAN_LIMITS.maxAppsPerUser;
 
-  // Mutation for creating apps
   const createAppMutation = useMutation({
     mutationFn: async (data: { name: string; description?: string }) => {
       const result = await oprc.apps.create(data);
@@ -57,7 +85,6 @@ function RouteComponent() {
     },
   });
 
-  // Mutation for deleting apps
   const deleteAppMutation = useMutation({
     mutationFn: async (data: { id: string }) => {
       const result = await oprc.apps.delete(data);
@@ -79,7 +106,6 @@ function RouteComponent() {
       toast.error("App name is required");
       return;
     }
-
     createAppMutation.mutate({
       name: newAppName.trim(),
       description: newAppDescription.trim() || undefined,
@@ -94,226 +120,202 @@ function RouteComponent() {
 
   const copyToClipboard = (text: string) => {
     void navigator.clipboard.writeText(text);
-    toast.success("Public key copied to clipboard!");
+    toast.success("Copied to clipboard");
   };
 
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-8 flex items-center justify-end">
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger
-            render={
-              <Button
-                disabled={reachedAppLimit}
-                title={
-                  reachedAppLimit
-                    ? `Free plan limit reached (${FREE_PLAN_LIMITS.maxAppsPerUser} apps)`
-                    : undefined
-                }
-              />
-            }
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Create App
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New App</DialogTitle>
-              <DialogDescription>
-                Create a new app to start tracking presence. Each app gets a unique public key for
-                tracking. Free plan limits: {FREE_PLAN_LIMITS.maxAppsPerUser} apps per user,{" "}
-                {FREE_PLAN_LIMITS.maxTagsPerApp} tags per app,{" "}
-                {FREE_PLAN_LIMITS.maxConcurrentConnectionsPerApp} concurrent connections per app.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor={appNameId}>App Name</Label>
-                <Input
-                  id={appNameId}
-                  value={newAppName}
-                  onChange={(e) => setNewAppName(e.target.value)}
-                  placeholder="My Website"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor={appDescriptionId}>Description (Optional)</Label>
-                <Input
-                  id={appDescriptionId}
-                  value={newAppDescription}
-                  onChange={(e) => setNewAppDescription(e.target.value)}
-                  placeholder="Track presence on my main website"
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsCreateDialogOpen(false)}
-                disabled={createAppMutation.isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleCreateApp}
-                disabled={createAppMutation.isPending || !newAppName.trim() || reachedAppLimit}
-              >
-                {createAppMutation.isPending ? "Creating..." : "Create App"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Apps Grid */}
-      {appsQuery.isLoading ? (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 w-3/4 rounded bg-muted" />
-                <div className="h-3 w-1/2 rounded bg-muted" />
-              </CardHeader>
-              <CardContent>
-                <div className="mb-2 h-3 w-full rounded bg-muted" />
-                <div className="h-3 w-2/3 rounded bg-muted" />
-              </CardContent>
-            </Card>
-          ))}
+    <div className="space-y-10">
+      {/* Overview Stats */}
+      <section>
+        <div className="grid grid-cols-1 gap-px overflow-hidden border border-white/[0.06] bg-white/[0.06] sm:grid-cols-3">
+          <StatCard
+            label="Applications"
+            value={appsCount}
+            limit={FREE_PLAN_LIMITS.maxAppsPerUser}
+            icon={Layers}
+            accentClass="bg-primary/15 text-primary"
+          />
+          <StatCard
+            label="Max Connections"
+            value={FREE_PLAN_LIMITS.maxConcurrentConnectionsPerApp}
+            icon={Wifi}
+            accentClass="bg-emerald-500/15 text-emerald-400"
+          />
+          <StatCard
+            label="Tags per App"
+            value={FREE_PLAN_LIMITS.maxTagsPerApp}
+            icon={KeyRound}
+            accentClass="bg-sky-500/15 text-sky-400"
+          />
         </div>
-      ) : appsQuery.data && appsQuery.data.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {appsQuery.data.map((app) => (
-            <Card key={app.id} className="transition-shadow hover:shadow-md">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{app.name}</CardTitle>
-                    <CardDescription className="mt-1">
-                      {app.description || "No description"}
-                    </CardDescription>
-                  </div>
-                  <Badge variant="secondary" className="ml-2">
-                    Active
-                  </Badge>
+      </section>
+
+      {/* Registry Header */}
+      <section>
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-xs tracking-widest text-white/40 uppercase">Registry</p>
+            <h1 className="mt-1 font-heading text-2xl tracking-tight text-white">
+              Your applications
+            </h1>
+          </div>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger
+              render={
+                <Button
+                  size="sm"
+                  disabled={reachedAppLimit}
+                  title={
+                    reachedAppLimit
+                      ? `Free plan limit reached (${FREE_PLAN_LIMITS.maxAppsPerUser} apps)`
+                      : undefined
+                  }
+                />
+              }
+            >
+              <Plus className="size-3.5" />
+              New app
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create application</DialogTitle>
+                <DialogDescription>
+                  Each app gets a unique public key for presence tracking. Free plan allows{" "}
+                  {FREE_PLAN_LIMITS.maxAppsPerUser} apps, {FREE_PLAN_LIMITS.maxTagsPerApp} tags, and{" "}
+                  {FREE_PLAN_LIMITS.maxConcurrentConnectionsPerApp} concurrent connections per app.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor={appNameId}>Name</Label>
+                  <Input
+                    id={appNameId}
+                    value={newAppName}
+                    onChange={(e) => setNewAppName(e.target.value)}
+                    placeholder="My Website"
+                    className="mt-1.5"
+                  />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div>
-                    <Label className="text-muted-foreground text-xs">Public Key</Label>
-                    <div className="mt-1 flex items-center gap-2">
-                      <code className="flex-1 truncate rounded bg-muted px-2 py-1 text-xs">
+                <div>
+                  <Label htmlFor={appDescriptionId}>
+                    Description <span className="text-muted-foreground">(optional)</span>
+                  </Label>
+                  <Input
+                    id={appDescriptionId}
+                    value={newAppDescription}
+                    onChange={(e) => setNewAppDescription(e.target.value)}
+                    placeholder="Track presence on my main website"
+                    className="mt-1.5"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCreateDialogOpen(false)}
+                  disabled={createAppMutation.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreateApp}
+                  disabled={createAppMutation.isPending || !newAppName.trim() || reachedAppLimit}
+                >
+                  {createAppMutation.isPending ? "Creating..." : "Create"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* App List */}
+        <div className="mt-6">
+          {appsQuery.isLoading ? (
+            <div className="divide-y divide-white/[0.06] border border-white/[0.06]">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse p-5">
+                  <div className="flex items-center gap-4">
+                    <div className="h-4 w-32 rounded bg-white/[0.06]" />
+                    <div className="h-3 w-48 rounded bg-white/[0.04]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : appsQuery.data && appsQuery.data.length > 0 ? (
+            <div className="divide-y divide-white/[0.06] border border-white/[0.06]">
+              {appsQuery.data.map((app) => (
+                <div
+                  key={app.id}
+                  className="group/row flex flex-col gap-4 p-5 transition-colors hover:bg-white/[0.02] sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-3">
+                      <h3 className="truncate font-heading text-base text-white">{app.name}</h3>
+                      <Badge
+                        variant="outline"
+                        className="shrink-0 border-emerald-500/30 text-emerald-400"
+                      >
+                        <span className="mr-1 inline-block size-1.5 animate-pulse rounded-full bg-emerald-400" />
+                        Live
+                      </Badge>
+                    </div>
+                    {app.description && (
+                      <p className="mt-1 truncate text-sm text-white/40">{app.description}</p>
+                    )}
+                    <div className="mt-2 flex items-center gap-2">
+                      <code className="truncate font-mono text-xs text-white/30">
                         {app.publicKey}
                       </code>
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <button
+                        type="button"
                         onClick={() => copyToClipboard(app.publicKey)}
-                        className="h-6 w-6 p-0"
+                        className="shrink-0 text-white/20 transition-colors hover:text-white/50"
                       >
-                        <Copy className="h-3 w-3" />
-                      </Button>
+                        <Copy className="size-3" />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+
+                  <div className="flex items-center gap-2 sm:opacity-0 sm:transition-opacity sm:group-hover/row:opacity-100">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1"
                       render={<Link to="/dashboard/$appId" params={{ appId: app.id }} />}
                       nativeButton={false}
                     >
-                      <Eye className="mr-1 h-3 w-3" />
-                      View Details
+                      <Eye className="size-3.5" />
+                      Details
                     </Button>
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant="ghost"
+                      size="icon-sm"
                       onClick={() => handleDeleteApp(app.id)}
                       disabled={deleteAppMutation.isPending}
-                      className="text-destructive hover:text-destructive"
+                      className="text-white/30 hover:text-destructive"
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 className="size-3.5" />
                     </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Card className="py-12 text-center">
-          <CardContent>
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-              <Plus className="h-8 w-8 text-muted-foreground" />
+              ))}
             </div>
-            <h3 className="mb-2 font-semibold text-lg">No apps yet</h3>
-            <p className="mb-4 text-muted-foreground">
-              Create your first app to start tracking presence
-            </p>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Your First App
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Stats Section */}
-      {appsQuery.data && appsQuery.data.length > 0 && (
-        <div className="mt-12">
-          <h2 className="mb-6 font-semibold text-2xl">Overview</h2>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <Card>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-muted-foreground text-sm">Total Apps</p>
-                    <p className="font-bold text-2xl">
-                      {appsCount} / {FREE_PLAN_LIMITS.maxAppsPerUser}
-                    </p>
-                  </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                    <Plus className="h-6 w-6 text-primary" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-muted-foreground text-sm">Active Sessions</p>
-                    <p className="font-bold text-2xl">
-                      0 / {FREE_PLAN_LIMITS.maxConcurrentConnectionsPerApp}
-                    </p>
-                  </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-500/10">
-                    <Eye className="h-6 w-6 text-green-500" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-muted-foreground text-sm">Total Events</p>
-                    <p className="font-bold text-2xl">0</p>
-                  </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-500/10">
-                    <Copy className="h-6 w-6 text-blue-500" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center border border-dashed border-white/[0.08] py-20 text-center">
+              <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-white/[0.04]">
+                <Layers className="size-6 text-white/20" />
+              </div>
+              <p className="text-xs tracking-widest text-white/30 uppercase">No applications</p>
+              <p className="mt-2 max-w-xs text-sm text-white/50">
+                Create your first app to start tracking real-time presence across your sites.
+              </p>
+              <Button size="sm" className="mt-6" onClick={() => setIsCreateDialogOpen(true)}>
+                <Plus className="size-3.5" />
+                Create first app
+              </Button>
+            </div>
+          )}
         </div>
-      )}
+      </section>
     </div>
   );
 }

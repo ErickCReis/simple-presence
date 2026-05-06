@@ -1,0 +1,222 @@
+---
+title: Core / Vanilla SDK
+description: Full reference for @simple-presence/core — the framework-agnostic presence client.
+---
+
+The `@simple-presence/core` package is the framework-agnostic client that powers all framework bindings. Use it directly with vanilla JS/TS, Vue, Svelte, Angular, or any other framework.
+
+## Installation
+
+```bash tab="npm"
+npm install @simple-presence/core
+```
+
+```bash tab="pnpm"
+pnpm add @simple-presence/core
+```
+
+```bash tab="bun"
+bun add @simple-presence/core
+```
+
+---
+
+## SimplePresence class
+
+The main entry point. Instantiate it with a config object and it immediately opens a WebSocket connection and starts receiving count updates.
+
+### Constructor
+
+```ts
+new SimplePresence(config: PresenceConfig)
+```
+
+### Config
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `tag` | `string` | Presence channel identifier |
+| `appKey` | `string` | Your application key from the dashboard |
+| `apiUrl` | `string?` | Custom server URL (defaults to hosted service) |
+| `onCountChange` | `(count: number) => void` | Callback fired on every count update |
+
+### Basic example
+
+```ts title="presence.ts"
+import { SimplePresence } from "@simple-presence/core";
+
+const presence = new SimplePresence({
+  tag: "homepage",
+  appKey: "your-app-key",
+  onCountChange: (count) => {
+    document.getElementById("counter")!.textContent = `${count} online`;
+  },
+});
+
+// Get the current count at any point
+console.log("Current count:", presence.getCount());
+
+// Clean up when done (e.g. on page navigation)
+presence.destroy();
+```
+
+---
+
+## initPresence helper
+
+An async factory that wraps the constructor. It throws if called outside a browser environment (no `window` object), making it useful for SSR-safe initialization.
+
+```ts title="async-init.ts"
+import { initPresence } from "@simple-presence/core";
+
+const presence = await initPresence({
+  tag: "checkout",
+  appKey: "your-app-key",
+  onCountChange: (count) => {
+    console.log("Users on checkout:", count);
+  },
+});
+
+// Use presence...
+presence.destroy();
+```
+
+---
+
+## Instance methods
+
+| Method | Returns | Description |
+| --- | --- | --- |
+| `getCount()` | `number` | Current live count (synchronous) |
+| `getStatus()` | `"online" \| "away"` | Current visibility status of this client |
+| `getClientId()` | `string` | Stable anonymous ID for this browser |
+| `getHistory()` | `Promise<CountSnapshot[]>` | Fetch historical count snapshots |
+| `getStats()` | `Promise<TagPeak>` | Fetch peak concurrent count and timestamp |
+| `destroy()` | `void` | Release the subscription and close the connection if unused |
+
+### History & Stats
+
+```ts title="analytics.ts"
+import { SimplePresence } from "@simple-presence/core";
+
+const presence = new SimplePresence({
+  tag: "product-page",
+  appKey: "your-app-key",
+});
+
+// Fetch historical count snapshots
+const history = await presence.getHistory();
+console.log("Snapshots:", history);
+// [{ timestamp: 1714000000, sessions: 42, online: 38, away: 4 }, ...]
+
+// Fetch peak analytics
+const stats = await presence.getStats();
+console.log("Peak:", stats.peak, "at", stats.peakAt);
+
+presence.destroy();
+```
+
+---
+
+## Global / Script Tag usage
+
+The core package attaches itself to `window.SimplePresence` when loaded in a browser, so you can use it without a bundler:
+
+```html title="index.html"
+<script src="https://unpkg.com/@simple-presence/core"></script>
+
+<script>
+  const { SimplePresence } = window.SimplePresence;
+
+  const presence = new SimplePresence({
+    tag: "landing",
+    appKey: "your-app-key",
+    onCountChange: (count) => {
+      document.getElementById("visitors").textContent = count;
+    },
+  });
+</script>
+```
+
+---
+
+## Framework integration examples
+
+Building your own integration? Here are examples for popular frameworks:
+
+### Vue 3
+
+```ts title="usePresence.ts"
+import { ref, onMounted, onUnmounted } from "vue";
+import { SimplePresence } from "@simple-presence/core";
+
+export function usePresenceCount(tag: string, appKey: string) {
+  const count = ref(0);
+  let presence: SimplePresence | null = null;
+
+  onMounted(() => {
+    presence = new SimplePresence({
+      tag,
+      appKey,
+      onCountChange: (n) => { count.value = n; },
+    });
+    count.value = presence.getCount();
+  });
+
+  onUnmounted(() => {
+    presence?.destroy();
+  });
+
+  return count;
+}
+```
+
+### Svelte 5
+
+```ts title="presence.svelte.ts"
+import { SimplePresence } from "@simple-presence/core";
+
+export function createPresenceCount(tag: string, appKey: string) {
+  let count = $state(0);
+  let presence: SimplePresence | null = null;
+
+  $effect(() => {
+    presence = new SimplePresence({
+      tag,
+      appKey,
+      onCountChange: (n) => { count = n; },
+    });
+    count = presence.getCount();
+
+    return () => presence?.destroy();
+  });
+
+  return { get count() { return count; } };
+}
+```
+
+---
+
+## Connection management
+
+Under the hood, the core SDK deduplicates connections. Multiple `SimplePresence` instances with the same `(apiUrl, appKey, tag)` tuple share a single WebSocket. The connection is only closed when *all* instances using it have been destroyed.
+
+### How deduplication works
+
+1. A connection key is computed as `` `${apiUrl}::${appKey}::${tag}` ``.
+2. If a connection for that key already exists, a ref-count is incremented and the existing socket is reused.
+3. On `destroy()`, the ref-count is decremented. The socket closes only when it reaches zero.
+
+## Client ID persistence
+
+The SDK generates a stable, anonymous client ID to prevent double-counting across tabs. The ID is persisted using this fallback chain:
+
+1. `localStorage` (preferred)
+2. Cookie (fallback if localStorage is unavailable)
+3. In-memory (last resort — resets on page reload)
+
+## Next steps
+
+- [React SDK](/docs/react) — pre-built hooks wrapping the core
+- [SolidJS SDK](/docs/solid-js) — reactive primitives for Solid
+- [API Reference](/docs/api-reference) — full type definitions

@@ -1,0 +1,122 @@
+---
+title: Quick Start
+description: Get real-time presence running in your app in under 5 minutes.
+---
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+## Prerequisites
+
+- A JavaScript/TypeScript project (React, SolidJS, or plain JS/TS)
+- A Simple Presence account — [sign up free](/dashboard)
+
+## 1. Create an App
+
+Sign in to the [dashboard](/dashboard) and click **"Create App"**. Give it a name and copy the generated **app key**.
+
+## 2. Install the SDK
+
+Pick the package for your framework:
+
+```bash tab="npm"
+npm install @simple-presence/react
+```
+
+```bash tab="pnpm"
+pnpm add @simple-presence/react
+```
+
+```bash tab="bun"
+bun add @simple-presence/react
+```
+
+For other frameworks, install `@simple-presence/solid-js` or `@simple-presence/core`.
+
+## 3. Add Presence to a Component
+
+Use the `usePresenceCount` hook with any tag string and your app key:
+
+```tsx title="App.tsx"
+import { usePresenceCount } from "@simple-presence/react";
+
+function OnlineUsers() {
+  const count = usePresenceCount("homepage", {
+    appKey: "your-app-key",
+  });
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="h-2 w-2 rounded-full bg-green-500" />
+      <span>{count} online now</span>
+    </div>
+  );
+}
+```
+
+That's it. The count updates in real time as users join and leave the page.
+
+## 4. Vanilla / Framework-Agnostic
+
+If you're not using React or SolidJS, the core package works anywhere:
+
+```ts title="presence.ts"
+import { SimplePresence } from "@simple-presence/core";
+
+const presence = new SimplePresence({
+  tag: "homepage",
+  appKey: "your-app-key",
+  onCountChange: (count) => {
+    document.getElementById("count")!.textContent = String(count);
+  },
+});
+
+// Later, when the user navigates away:
+presence.destroy();
+```
+
+## 5. Advanced: History & Peak
+
+Use `usePresence` for richer data including historical counts and peak analytics:
+
+```tsx title="Analytics.tsx"
+import { usePresence } from "@simple-presence/react";
+
+function PresenceAnalytics() {
+  const { count, history, peak, peakAt, refresh } = usePresence("dashboard", {
+    appKey: "your-app-key",
+  });
+
+  return (
+    <div>
+      <p>Current: {count} users</p>
+      <p>Peak: {peak} at {peakAt?.toLocaleTimeString()}</p>
+      <p>History points: {history.length}</p>
+      <button onClick={refresh}>Refresh stats</button>
+    </div>
+  );
+}
+```
+
+## What happens under the hood
+
+<Steps>
+  <Step>
+    The SDK opens a WebSocket to Cloudflare's edge network, nearest to the user.
+  </Step>
+  <Step>
+    A Durable Object aggregates all connections for your app key + tag combination.
+  </Step>
+  <Step>
+    When a user joins or leaves, the updated count is broadcast to all subscribers instantly.
+  </Step>
+  <Step>
+    Tab visibility is tracked automatically — users are marked "away" when they switch tabs.
+  </Step>
+</Steps>
+
+## Next steps
+
+- [React SDK](/docs/react) — full API for `usePresenceCount` and `usePresence`
+- [SolidJS SDK](/docs/solid-js) — reactive primitives with `createPresenceCount`
+- [Core SDK](/docs/core) — framework-agnostic `SimplePresence` class
+- [API Reference](/docs/api-reference) — types, schemas, and configuration options

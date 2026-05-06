@@ -1,6 +1,7 @@
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
+import mdx from "fumadocs-mdx/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig({
@@ -8,6 +9,7 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   plugins: [
+    mdx(await import("./source.config")),
     tailwindcss(),
     tanstackStart({
       prerender: {

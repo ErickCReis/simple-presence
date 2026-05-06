@@ -22,6 +22,13 @@
 			"when": 1753845251118,
 			"tag": "0002_bored_network",
 			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "6",
+			"when": 1746497000000,
+			"tag": "0003_count_snapshot",
+			"breakpoints": true
 		}
 	]
 }

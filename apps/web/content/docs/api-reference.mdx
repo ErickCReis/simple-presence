@@ -1,0 +1,185 @@
+---
+title: API Reference
+description: Complete type definitions, schemas, and WebSocket protocol reference.
+---
+
+## Core Types
+
+These are the primary interfaces used across all SDK packages:
+
+```ts title="types.ts"
+interface PresenceConfig {
+  /** Channel identifier — groups users into presence rooms */
+  tag: string;
+  /** Your application key from the dashboard */
+  appKey: string;
+  /** Custom API URL for self-hosted deployments */
+  apiUrl?: string;
+  /** Callback fired whenever the count changes */
+  onCountChange?: (count: number) => void;
+}
+
+interface CountSnapshot {
+  /** Unix timestamp (ms) when snapshot was recorded */
+  timestamp: number;
+  /** Total sessions (online + away) */
+  sessions: number;
+  /** Users actively on the page */
+  online: number;
+  /** Users who switched to another tab */
+  away: number;
+}
+
+interface TagPeak {
+  /** Highest concurrent session count observed */
+  peak: number;
+  /** When the peak was recorded (ISO date string) */
+  peakAt: string;
+}
+
+interface PresenceState {
+  /** Current live user count */
+  count: number;
+  /** Historical count snapshots */
+  history: CountSnapshot[];
+  /** Peak concurrent users */
+  peak: number;
+  /** When the peak occurred */
+  peakAt: Date | null;
+  /** Manually refresh history and stats */
+  refresh: () => void;
+}
+```
+
+---
+
+## Hook / Primitive Options
+
+Framework bindings simplify the config by extracting `tag` as a first argument and removing `onCountChange` (handled internally):
+
+```ts title="options.ts"
+type PresenceOptions = {
+  appKey: string;
+  apiUrl?: string;
+};
+
+// React
+usePresenceCount(tag: string, options: PresenceOptions): number
+usePresence(tag: string, options: PresenceOptions): PresenceState
+
+// SolidJS
+createPresenceCount(tag: Accessor<string>, options: Accessor<PresenceOptions>): Accessor<number>
+createPresence(tag: Accessor<string>, options: Accessor<PresenceOptions>): PresenceState
+```
+
+---
+
+## WebSocket Protocol
+
+The SDK communicates with the server over WebSocket using [oRPC](https://orpc.unnoq.com) — a typed RPC protocol:
+
+```ts title="protocol.ts"
+// WebSocket URL format:
+// wss://<apiUrl>/<appKey>?cid=<clientId>
+
+// Subscribe to count updates (server-sent stream)
+presence.on({ tag: string }) // → AsyncIterable<number>
+
+// Update visibility status
+presence.update({ tag: string, status: "online" | "away" })
+
+// Fetch historical snapshots
+presence.history({ tag: string }) // → CountSnapshot[]
+
+// Fetch peak stats
+presence.stats({ tag: string }) // → TagPeak
+```
+
+### Connection lifecycle
+
+1. Client opens WebSocket to `wss://<apiUrl>/<appKey>?cid=<clientId>`
+2. Client calls `presence.on({ tag })` to subscribe — server pushes count updates as an async iterable.
+3. Client sends `presence.update({ tag, status })` on visibility change.
+4. On disconnect, the server marks the session as left after a short grace period.
+
+---
+
+## Dashboard API
+
+The dashboard uses an authenticated API for app management and live monitoring:
+
+```ts title="dashboard-api.ts"
+interface AppSummary {
+  id: string;
+  name: string;
+  key: string;
+  createdAt: string;
+  activeSessions: number;
+}
+
+interface AppDetail extends AppSummary {
+  tags: TagInfo[];
+  events: PresenceEvent[];
+}
+
+// CRUD operations (requires auth session)
+apps.list()   // → AppSummary[]
+apps.create({ name: string }) // → AppSummary
+apps.delete({ id: string })   // → void
+
+// Live watch stream
+apps.watch({ id: string }) // → AsyncIterable<WatchAppPayload>
+
+interface WatchAppPayload {
+  tags: WatchTagStat[];
+  events: PresenceEvent[];
+}
+
+interface WatchTagStat {
+  tag: string;
+  sessions: number;
+  online: number;
+  away: number;
+}
+
+interface PresenceEvent {
+  type: "join" | "leave" | "update";
+  tag: string;
+  clientId: string;
+  status: "online" | "away";
+  timestamp: string;
+}
+```
+
+---
+
+## Configuration
+
+### Free tier limits
+
+| Limit | Value |
+| --- | --- |
+| Apps per user | 2 |
+| Tags per app | 10 |
+| Concurrent connections per app | 100 |
+
+---
+
+## Error handling
+
+The SDK handles most errors internally (reconnection, network failures). Key scenarios:
+
+- **Invalid app key** — WebSocket connection will fail. The SDK retries up to 5 times before giving up silently.
+- **Network offline** — automatic reconnection via partysocket. Count may show stale data during disconnection.
+- **Rate limited** — if you exceed free tier connection limits, new connections will be rejected.
+- **Server-side calls** — `initPresence()` throws if `window` is undefined. Use conditional initialization or framework SSR guards.
+
+---
+
+## Package exports
+
+| Package | Exports |
+| --- | --- |
+| `@simple-presence/core` | `SimplePresence`, `initPresence`, types |
+| `@simple-presence/react` | `usePresenceCount`, `usePresence`, types |
+| `@simple-presence/solid-js` | `createPresenceCount`, `createPresence`, types |

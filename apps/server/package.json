@@ -11,22 +11,22 @@
     "db:studio:prod": "drizzle-kit studio --config=drizzle-prod.config.ts"
   },
   "dependencies": {
-    "@orpc/server": "^1.13.13",
+    "@orpc/server": "^1.14.1",
     "@simple-presence/config": "workspace:*",
     "@simple-presence/contracts": "workspace:*",
-    "better-auth": "^1.5.6",
+    "better-auth": "^1.6.9",
     "drizzle-orm": "^0.45.2",
-    "hono": "^4.12.10",
-    "nanoid": "^5.1.7",
-    "valibot": "^1.0.0"
+    "hono": "^4.12.17",
+    "nanoid": "^5.1.11",
+    "valibot": "^1.4.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260405.1",
-    "alchemy": "^0.90.1",
-    "dotenv": "^17.4.1",
+    "@cloudflare/workers-types": "^4.20260506.1",
+    "alchemy": "^0.93.7",
+    "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
-    "miniflare": "^4.20260401.0",
-    "tsc-alias": "^1.8.16",
-    "typescript": "^6.0.2"
+    "miniflare": "^4.20260504.0",
+    "tsc-alias": "^1.8.17",
+    "typescript": "^6.0.3"
   }
 }

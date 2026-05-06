@@ -1,6 +1,5 @@
 import { usePresenceCount } from "@simple-presence/react";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function HeroDemo() {
   const count = usePresenceCount("landing", {
@@ -9,46 +8,25 @@ export function HeroDemo() {
   });
 
   return (
-    <div className="mx-auto w-full max-w-4xl p-6">
-      <Card className="gap-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 dark:border-blue-800 dark:from-blue-950 dark:to-indigo-950">
-        <CardHeader className="text-center">
-          <CardTitle className="font-bold text-2xl text-blue-600 dark:text-blue-400">
-            Live Demo
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-center">
-          <div className="mb-4">
-            <div className="font-bold text-4xl text-blue-600 dark:text-blue-400">
-              <AnimatedCounter value={count} duration={800} showCommas={true} />
-            </div>
-            <div className="text-lg text-muted-foreground">users online right now</div>
-          </div>
+    <div className="landing-fade-in relative my-16" style={{ animationDelay: "0.2s" }}>
+      <div className="pointer-events-none absolute -inset-x-20 -inset-y-10 rounded-full bg-emerald-500/15 blur-3xl" />
 
-          <div className="flex items-center justify-center gap-2">
-            <div className="h-3 w-3 animate-pulse rounded-full bg-green-500" />
-            <span className="text-muted-foreground text-sm">Live data</span>
-          </div>
+      <div
+        className="relative font-heading text-7xl font-bold leading-none tracking-tighter text-emerald-400 tabular-nums md:text-9xl"
+        style={{ textShadow: "0 0 80px rgba(52, 211, 153, 0.3)" }}
+      >
+        <AnimatedCounter value={count} duration={800} showCommas />
+      </div>
 
-          <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-blue-700 text-sm dark:bg-blue-900 dark:text-blue-300">
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <title>Demo indicator</title>
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
-            Using real Simple Presence API
-          </div>
-        </CardContent>
-      </Card>
+      <div className="mt-5 flex items-center justify-center gap-2.5">
+        <span className="relative flex size-2">
+          <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+          <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
+        </span>
+        <span className="text-sm font-medium uppercase tracking-widest text-gray-500">
+          people on this page
+        </span>
+      </div>
     </div>
   );
 }

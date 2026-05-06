@@ -1,0 +1,162 @@
+---
+title: Self-Hosting
+description: Deploy your own Simple Presence server on Cloudflare Workers.
+---
+
+Simple Presence is open source and can be deployed to your own Cloudflare account for full control over data and infrastructure.
+
+<Callout type="info" title="Before you begin">
+  Self-hosting requires a [Cloudflare Workers Paid plan](https://www.cloudflare.com/plans/developer-platform/) ($5/mo) for Durable Objects support. You'll also need [Bun](https://bun.sh) installed locally.
+</Callout>
+
+## Architecture
+
+<Cards>
+  <Card title="Workers">
+    HTTP API, auth, WebSocket upgrade routing
+  </Card>
+  <Card title="Durable Objects">
+    Real-time state, WebSocket management, count aggregation
+  </Card>
+  <Card title="D1 Database">
+    User accounts, app registry, persistent data
+  </Card>
+</Cards>
+
+```ts title="architecture.ts"
+// 1. Cloudflare Worker (entry point)
+//    - Handles HTTP API (oRPC routes)
+//    - Authentication (better-auth)
+//    - Routes WebSocket upgrades to Durable Objects
+
+// 2. Durable Objects (presence state)
+//    - One DO per (appKey, tag) combination
+//    - Manages WebSocket connections
+//    - Aggregates counts (online + away)
+//    - Persists history snapshots to SQLite
+//    - Broadcasts count changes to subscribers
+
+// 3. D1 Database (persistent storage)
+//    - User accounts and sessions
+//    - App registry (names, keys)
+//    - Used by the dashboard API
+```
+
+---
+
+## Step 1: Clone the repository
+
+```bash
+git clone https://github.com/simple-presence/simple-presence.git
+cd simple-presence
+```
+
+## Step 2: Configure environment
+
+Copy `apps/server/.env.example` to `apps/server/.env` and fill in your values:
+
+```bash title=".env"
+# Database (Cloudflare D1)
+DATABASE_ID=your-d1-database-id
+
+# Auth (better-auth)
+BETTER_AUTH_SECRET=your-secret-key
+BETTER_AUTH_URL=https://your-domain.com
+
+# GitHub OAuth (optional)
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+
+# Google OAuth (optional)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
+
+### Required Cloudflare resources
+
+1. **D1 Database** — create one via the Cloudflare dashboard or `wrangler d1 create simple-presence`
+2. **Durable Object namespace** — configured automatically in `wrangler.toml`
+
+## Step 3: Deploy
+
+```bash
+# Install dependencies
+bun install
+
+# Run database migrations
+cd apps/server
+bun run db:migrate
+
+# Deploy to Cloudflare Workers
+bun run deploy
+```
+
+## Step 4: Point your SDK
+
+After deploying, pass your custom server URL via the `apiUrl` option:
+
+```tsx title="App.tsx"
+import { usePresenceCount } from "@simple-presence/react";
+
+function App() {
+  const count = usePresenceCount("homepage", {
+    appKey: "your-app-key",
+    apiUrl: "https://presence.your-domain.com",
+  });
+
+  return <p>{count} online</p>;
+}
+```
+
+---
+
+## Authentication providers
+
+The dashboard uses [better-auth](https://better-auth.com) for user authentication. Configure OAuth providers by setting the corresponding environment variables:
+
+- **GitHub** — `GITHUB_CLIENT_ID` + `GITHUB_CLIENT_SECRET`
+- **Google** — `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`
+
+At least one provider should be configured. You can add more by extending the auth config in `apps/server/src/lib/auth.ts`.
+
+---
+
+## Deploying the web dashboard
+
+The web app (`apps/web`) can be deployed to any static hosting or edge platform. Set these environment variables at build time:
+
+| Variable | Description |
+| --- | --- |
+| `VITE_SERVER_URL` | Your deployed server URL (e.g. https://presence.your-domain.com) |
+| `VITE_DEMO_APP_KEY` | App key for the landing page live demo (optional) |
+
+---
+
+## Scaling considerations
+
+- **Durable Objects** scale automatically — each tag gets its own DO instance that can handle thousands of concurrent connections.
+- **Geographic distribution** — DOs migrate to be close to the majority of connected clients. For global deployments, this happens automatically.
+- **D1 Database** — used only for dashboard operations (CRUD), not for real-time presence. D1 read replicas handle read-heavy dashboard queries.
+- **WebSocket limits** — Cloudflare Workers support up to 32,768 concurrent WebSocket connections per DO instance.
+
+## Monitoring
+
+Use the Cloudflare dashboard to monitor:
+
+- Worker invocations and errors
+- Durable Object storage usage
+- WebSocket connection metrics
+- D1 query performance
+
+The server also exposes a `/health` endpoint for uptime monitoring.
+
+## Updating
+
+1. Pull the latest changes from the repository
+2. Run `bun install` to update dependencies
+3. Run migrations if needed: `bun run db:migrate`
+4. Deploy: `bun run deploy`
+
+<Callout title="Prefer the hosted version?">
+  The free tier includes 2 apps and 100 concurrent connections — enough for most projects. No infrastructure to manage. [Get started for free →](/dashboard)
+</Callout>

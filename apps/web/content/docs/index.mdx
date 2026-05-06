@@ -1,0 +1,58 @@
+---
+title: Introduction
+description: Learn about Simple Presence, a real-time user presence service for any JavaScript application.
+---
+
+Simple Presence is a hosted real-time presence service that lets you see how many users are active on any page or feature of your application — with just a few lines of code.
+
+## What is Simple Presence?
+
+At its core, Simple Presence tracks **who's here right now**. It gives you a live count of active users for any "tag" you define — a page, a feature, a room, a document — and keeps that count synchronized across all connected clients in real time.
+
+<Cards>
+  <Card title="Real-time counts">
+    Know exactly how many users are online, updated via WebSocket in real time.
+  </Card>
+  <Card title="Online & Away detection">
+    Automatic visibility-based status. Users marked "away" when they switch tabs.
+  </Card>
+  <Card title="History & Peak analytics">
+    Query historical counts and peak concurrent users for any tag.
+  </Card>
+  <Card title="Shared connections">
+    Multiple hooks on the same page reuse a single WebSocket. Zero waste.
+  </Card>
+</Cards>
+
+## How it works
+
+1. **Install the SDK** — pick your framework binding (`@simple-presence/react`, `@simple-presence/solid-js`) or the framework-agnostic core.
+2. **Create an app** — sign in to the dashboard, create an app, and grab your app key.
+3. **Add a hook** — call `usePresenceCount("my-tag", { appKey })` in your component. That's it.
+
+Under the hood, the SDK opens a WebSocket to our edge infrastructure (Cloudflare Durable Objects), subscribes to a presence stream for the tag you chose, and handles reconnection, visibility changes, and connection sharing automatically.
+
+## Key concepts
+
+### Tags
+
+A **tag** is any string that identifies a logical "room" or "channel". Users subscribed to the same tag can see each other's presence. Tags are scoped to your app key, so they won't collide with other apps.
+
+### App Key
+
+Your **app key** identifies your application. You get one when you create an app in the dashboard. It's safe to expose in client-side code — it only grants read/subscribe access.
+
+### Client ID
+
+Each browser gets a stable, anonymous **client ID** persisted in localStorage (with a cookie fallback). This prevents double-counting when a user has multiple tabs open.
+
+## Supported frameworks
+
+- React (`@simple-presence/react`)
+- SolidJS (`@simple-presence/solid-js`)
+- Vanilla JS / TS (`@simple-presence/core`)
+- Any framework via the core package
+
+## Next steps
+
+Ready to get started? Follow the [Quick Start](/docs/quick-start) guide to have real-time presence running in under 5 minutes.

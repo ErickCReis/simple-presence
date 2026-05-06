@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/oxanium";
 
@@ -142,5 +144,25 @@ body {
   }
   html {
     @apply font-sans;
+  }
+}
+
+.landing-dots {
+  background-image: radial-gradient(circle, oklch(1 0 0 / 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.landing-fade-in {
+  animation: landing-fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes landing-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

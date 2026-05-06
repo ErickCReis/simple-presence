@@ -1,0 +1,172 @@
+---
+title: SolidJS SDK
+description: Full reference for @simple-presence/solid-js primitives — createPresenceCount and createPresence.
+---
+
+The `@simple-presence/solid-js` package provides reactive primitives for real-time presence in SolidJS applications.
+
+## Installation
+
+```bash tab="npm"
+npm install @simple-presence/solid-js
+```
+
+```bash tab="pnpm"
+pnpm add @simple-presence/solid-js
+```
+
+```bash tab="bun"
+bun add @simple-presence/solid-js
+```
+
+Requires SolidJS 1.x+ and a browser environment.
+
+---
+
+## createPresenceCount
+
+Returns an accessor with the live user count. Updates reactively when the count changes on the server.
+
+### Signature
+
+```ts
+createPresenceCount(
+  tag: Accessor<string>,
+  options: Accessor<PresenceOptions>
+): Accessor<number>
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `tag` | `Accessor<string>` | Accessor returning the channel tag |
+| `options` | `Accessor<PresenceOptions>` | Accessor returning `{ appKey, apiUrl? }` |
+
+### Example
+
+```tsx title="OnlineUsers.tsx"
+import { createPresenceCount } from "@simple-presence/solid-js";
+
+function OnlineUsers() {
+  const count = createPresenceCount(
+    () => "homepage",
+    () => ({ appKey: "your-app-key" })
+  );
+
+  return (
+    <span class="flex items-center gap-2">
+      <span class="h-2 w-2 rounded-full bg-green-500" />
+      {count()} online now
+    </span>
+  );
+}
+```
+
+---
+
+## createPresence
+
+Returns an object with reactive accessors for count, history, peak analytics, and a manual refresh function.
+
+### Signature
+
+```ts
+createPresence(
+  tag: Accessor<string>,
+  options: Accessor<PresenceOptions>
+): PresenceState
+```
+
+### Return value
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `count` | `Accessor<number>` | Reactive live count |
+| `history` | `Accessor<CountSnapshot[]>` | Reactive array of count snapshots |
+| `peak` | `Accessor<number>` | Reactive peak concurrent count |
+| `peakAt` | `Accessor<Date \| null>` | When the peak was observed |
+| `refresh` | `() => void` | Manually re-fetch stats |
+
+### Example
+
+```tsx title="PresencePanel.tsx"
+import { createPresence } from "@simple-presence/solid-js";
+import { For } from "solid-js";
+
+function PresencePanel() {
+  const presence = createPresence(
+    () => "dashboard",
+    () => ({ appKey: "your-app-key" })
+  );
+
+  return (
+    <div class="space-y-4">
+      <div>
+        <h3>Live</h3>
+        <p class="text-3xl font-bold">{presence.count()}</p>
+      </div>
+      <div>
+        <h3>Peak</h3>
+        <p>
+          {presence.peak()} concurrent —{" "}
+          {presence.peakAt()?.toLocaleString()}
+        </p>
+      </div>
+      <div>
+        <h3>History</h3>
+        <ul>
+          <For each={presence.history().slice(-5)}>
+            {(snap) => (
+              <li>
+                {new Date(snap.timestamp).toLocaleTimeString()}: {snap.sessions}
+              </li>
+            )}
+          </For>
+        </ul>
+      </div>
+      <button onClick={presence.refresh}>Refresh</button>
+    </div>
+  );
+}
+```
+
+---
+
+## Dynamic tags
+
+Since both primitives accept accessors, you can derive the tag from reactive state like route params:
+
+```tsx title="DynamicRoom.tsx"
+import { createPresenceCount } from "@simple-presence/solid-js";
+import { useParams } from "@solidjs/router";
+
+function RoomPresence() {
+  const params = useParams();
+
+  const count = createPresenceCount(
+    () => `room-${params.roomId}`,
+    () => ({ appKey: "your-app-key" })
+  );
+
+  return <p>{count()} in this room</p>;
+}
+```
+
+---
+
+<Callout type="warn" title="Important note">
+  Unlike the React hooks, the SolidJS primitives read the tag and options **once during `onMount`**. If you need the SDK to reconnect when the tag changes, the component must remount (e.g. using a keyed `<Show>` or `<Switch>`).
+</Callout>
+
+## Behavior
+
+- **Fine-grained reactivity** — only subscribers to a specific accessor re-render when that value changes.
+- **Visibility tracking** — same as other SDKs. Status changes to "away" when the tab is hidden.
+- **Connection sharing** — same deduplication logic as the React package. One socket per unique `(apiUrl, appKey, tag)` tuple.
+- **Cleanup** — subscriptions are released in `onCleanup` when the owner scope is disposed.
+
+## Next steps
+
+- [Core SDK](/docs/core) — lower-level `SimplePresence` class used under the hood
+- [API Reference](/docs/api-reference) — full type definitions and configuration options

@@ -6,10 +6,10 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "@orpc/contract": "^1.13.13",
-    "valibot": "^1.0.0"
+    "@orpc/contract": "^1.14.1",
+    "valibot": "^1.4.0"
   },
   "devDependencies": {
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
   }
 }

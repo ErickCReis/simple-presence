@@ -25,6 +25,12 @@ export const router = presence.router({
 
     context.do.broadcastTagCount(input.tag, result.currentTagCount);
   }),
+  history: presence.history.handler(async ({ context, input }) => {
+    return context.do.getHistory(input.tag);
+  }),
+  stats: presence.stats.handler(async ({ context, input }) => {
+    return context.do.getTagPeak(input.tag);
+  }),
 });
 
 export type PresenceRouter = typeof router;

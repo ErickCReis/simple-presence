@@ -68,12 +68,44 @@ const presence = await initPresence({
 - `getCount(): number` returns the most recent count
 - `getStatus(): "online" | "away"` returns the current local presence state
 - `getClientId(): string` returns the persisted browser client id
+- `getHistory(): Promise<CountSnapshot[]>` fetches time-bucketed count snapshots for the current tag (last 30 minutes, sampled every 10 seconds)
+- `getStats(): Promise<TagPeak>` fetches peak concurrent users and the timestamp it was reached for the current tag
 - `destroy(): Promise<void>` removes listeners and releases the shared connection
+
+### Types
+
+```ts
+type CountSnapshot = {
+  timestamp: string;
+  sessions: number;
+  online: number;
+  away: number;
+};
+
+type TagPeak = {
+  peak: number;
+  peakAt: string | null;
+};
+```
 
 ### Exported types
 
 - `PresenceConfig`
 - `PresenceData`
+- `CountSnapshot`
+- `TagPeak`
+
+## History and Peak Stats
+
+The server records count snapshots every 10 seconds and retains them for 30 minutes. It also tracks the all-time peak concurrent users per tag.
+
+```js
+const history = await presence.getHistory();
+// [{ timestamp: "2025-...", sessions: 5, online: 4, away: 1 }, ...]
+
+const stats = await presence.getStats();
+// { peak: 42, peakAt: "2025-..." }
+```
 
 ## Behavior
 

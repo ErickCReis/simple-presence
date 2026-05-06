@@ -1,0 +1,207 @@
+---
+title: React SDK
+description: Full reference for @simple-presence/react hooks — usePresenceCount and usePresence.
+---
+
+The `@simple-presence/react` package provides two hooks for real-time presence in React applications.
+
+## Installation
+
+```bash tab="npm"
+npm install @simple-presence/react
+```
+
+```bash tab="pnpm"
+pnpm add @simple-presence/react
+```
+
+```bash tab="bun"
+bun add @simple-presence/react
+```
+
+Requires React 18+ and a browser environment.
+
+---
+
+## usePresenceCount
+
+The simplest way to display a live user count. Returns a `number` that updates in real time.
+
+### Signature
+
+```ts
+usePresenceCount(tag: string, options: PresenceOptions): number
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `tag` | `string` | Identifies the presence channel (e.g. "homepage", "room-42") |
+| `options.appKey` | `string` | Your app key from the dashboard |
+| `options.apiUrl` | `string?` | Custom API URL for self-hosted deployments |
+
+### Example
+
+```tsx title="OnlineIndicator.tsx"
+import { usePresenceCount } from "@simple-presence/react";
+
+function OnlineIndicator() {
+  const count = usePresenceCount("landing-page", {
+    appKey: "your-app-key",
+  });
+
+  return (
+    <span className="flex items-center gap-2 text-sm text-gray-600">
+      <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+      {count} {count === 1 ? "person" : "people"} here
+    </span>
+  );
+}
+```
+
+### Custom API URL
+
+For self-hosted deployments, pass an `apiUrl` option:
+
+```tsx title="SelfHosted.tsx"
+import { usePresenceCount } from "@simple-presence/react";
+
+function OnlineCount() {
+  const count = usePresenceCount("dashboard", {
+    appKey: "your-app-key",
+    apiUrl: "https://presence.your-domain.com",
+  });
+
+  return <p>{count} online</p>;
+}
+```
+
+---
+
+## usePresence
+
+A richer hook that provides live count, historical snapshots, and peak analytics. Data is polled every 10 seconds automatically.
+
+### Signature
+
+```ts
+usePresence(tag: string, options: PresenceOptions): PresenceState
+```
+
+### Return value
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `count` | `number` | Current live count (same as usePresenceCount) |
+| `history` | `CountSnapshot[]` | Array of recent count snapshots with timestamps |
+| `peak` | `number` | Highest concurrent user count observed |
+| `peakAt` | `Date \| null` | When the peak count was observed |
+| `refresh` | `() => void` | Manually refresh history and stats |
+
+### Example
+
+```tsx title="PresencePanel.tsx"
+import { usePresence } from "@simple-presence/react";
+
+function PresencePanel() {
+  const { count, history, peak, peakAt, refresh } = usePresence("room-42", {
+    appKey: "your-app-key",
+  });
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3>Live count</h3>
+        <p className="text-3xl font-bold">{count}</p>
+      </div>
+      <div>
+        <h3>Peak</h3>
+        <p>{peak} concurrent — {peakAt?.toLocaleString()}</p>
+      </div>
+      <div>
+        <h3>Recent history ({history.length} snapshots)</h3>
+        <ul>
+          {history.slice(-5).map((snap) => (
+            <li key={snap.timestamp}>
+              {new Date(snap.timestamp).toLocaleTimeString()}: {snap.sessions} total
+              ({snap.online} online, {snap.away} away)
+            </li>
+          ))}
+        </ul>
+      </div>
+      <button onClick={refresh}>Refresh stats</button>
+    </div>
+  );
+}
+```
+
+---
+
+## Patterns
+
+### Dynamic tags
+
+When the tag changes (e.g. based on route params), the SDK automatically tears down the old subscription and creates a new one:
+
+```tsx title="DynamicRoom.tsx"
+import { usePresenceCount } from "@simple-presence/react";
+import { useParams } from "your-router";
+
+function RoomPresence() {
+  const { roomId } = useParams();
+
+  // Tag changes when roomId changes — SDK reconnects automatically
+  const count = usePresenceCount(`room-${roomId}`, {
+    appKey: "your-app-key",
+  });
+
+  return <p>{count} in this room</p>;
+}
+```
+
+### Multiple tags on one page
+
+You can use multiple hooks in the same component. Under the hood, they share the same WebSocket connection when the `appKey` and `apiUrl` match:
+
+```tsx title="MultiRoom.tsx"
+import { usePresenceCount } from "@simple-presence/react";
+
+function Dashboard() {
+  const homepage = usePresenceCount("homepage", { appKey: "your-app-key" });
+  const pricing = usePresenceCount("pricing", { appKey: "your-app-key" });
+  const docs = usePresenceCount("docs", { appKey: "your-app-key" });
+
+  return (
+    <table>
+      <tbody>
+        <tr><td>Homepage</td><td>{homepage}</td></tr>
+        <tr><td>Pricing</td><td>{pricing}</td></tr>
+        <tr><td>Docs</td><td>{docs}</td></tr>
+      </tbody>
+    </table>
+  );
+}
+```
+
+---
+
+## Behavior notes
+
+- **Visibility tracking** — when the user switches tabs, their status changes to "away". When they return, it switches back to "online". Handled automatically.
+- **Connection sharing** — hooks with the same `(apiUrl, appKey, tag)` tuple share a single WebSocket. No duplicate connections.
+- **Cleanup** — when the component unmounts, the subscription is released. The socket only closes when no hooks are using it.
+- **Reconnection** — the SDK uses [partysocket](https://github.com/partykit/partykit) for automatic reconnection with exponential backoff (up to 5 retries).
+
+## TypeScript
+
+The package ships with full TypeScript definitions. Key exported types:
+
+- `PresenceState` — return type of `usePresence`
+- `CountSnapshot` — `{ timestamp, sessions, online, away }`
+- `TagPeak` — `{ peak, peakAt }`
+
+## Next steps
+
+- [Core SDK](/docs/core) — use the class-based API directly for more control
+- [API Reference](/docs/api-reference) — full type definitions and schemas

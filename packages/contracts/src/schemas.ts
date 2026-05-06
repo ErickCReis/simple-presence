@@ -66,6 +66,18 @@ export const presenceDataSchema = v.object({
   status: v.picklist(["online", "away"]),
 });
 
+export const countSnapshotSchema = v.object({
+  timestamp: v.string(),
+  sessions: v.number(),
+  online: v.number(),
+  away: v.number(),
+});
+
+export const tagPeakSchema = v.object({
+  peak: v.number(),
+  peakAt: v.nullable(v.string()),
+});
+
 // ─── Inferred Types ───
 
 export type AppSummary = v.InferOutput<typeof appSummarySchema>;
@@ -79,3 +91,5 @@ export type PresenceEventDto = v.InferOutput<typeof presenceEventDtoSchema>;
 export type WatchAppPayload = v.InferOutput<typeof watchAppPayloadSchema>;
 export type PresenceUpdateInput = v.InferOutput<typeof presenceUpdateInputSchema>;
 export type PresenceData = v.InferOutput<typeof presenceDataSchema>;
+export type CountSnapshot = v.InferOutput<typeof countSnapshotSchema>;
+export type TagPeak = v.InferOutput<typeof tagPeakSchema>;

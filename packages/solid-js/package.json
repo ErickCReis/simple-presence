@@ -1,0 +1,56 @@
+{
+  "name": "@simple-presence/solid-js",
+  "version": "0.3.0",
+  "description": "SolidJS primitives for real-time user presence tracking",
+  "keywords": [
+    "online-users",
+    "presence",
+    "real-time",
+    "solid",
+    "solidjs",
+    "websocket"
+  ],
+  "homepage": "https://simple-presence.erickr.dev",
+  "bugs": {
+    "url": "https://github.com/ErickCReis/simple-presence/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ErickCReis/simple-presence.git",
+    "directory": "packages/solid-js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown --platform browser src/index.tsx",
+    "dev": "tsdown --watch --platform browser src/index.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@simple-presence/core": "workspace:*"
+  },
+  "devDependencies": {
+    "solid-js": "^1.9.12",
+    "tsdown": "^0.21.10",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "solid-js": ">=1.8"
+  }
+}
