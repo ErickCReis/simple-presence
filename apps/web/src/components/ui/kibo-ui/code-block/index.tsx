@@ -492,22 +492,23 @@ export const CodeBlockCopyButton = ({
 
 type CodeBlockFallbackProps = HTMLAttributes<HTMLDivElement>;
 
-const CodeBlockFallback = ({ children, ...props }: CodeBlockFallbackProps) => (
-  <div {...props}>
-    <pre className="w-full">
-      <code>
-        {String(children ?? "")
-          .toString()
-          .split("\n")
-          .map((line, i) => (
+const CodeBlockFallback = ({ children, ...props }: CodeBlockFallbackProps) => {
+  const code = typeof children === "string" || typeof children === "number" ? String(children) : "";
+
+  return (
+    <div {...props}>
+      <pre className="w-full">
+        <code>
+          {code.split("\n").map((line, i) => (
             <span className="line" key={i}>
               {line}
             </span>
           ))}
-      </code>
-    </pre>
-  </div>
-);
+        </code>
+      </pre>
+    </div>
+  );
+};
 
 export type CodeBlockBodyProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
   children: (item: CodeBlockData) => ReactNode;

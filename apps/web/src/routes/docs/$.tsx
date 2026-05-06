@@ -1,12 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
-import {
-  DocsBody,
-  DocsDescription,
-  DocsPage,
-  DocsTitle,
-} from "fumadocs-ui/layouts/docs/page";
+import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/layouts/docs/page";
 import { useFumadocsLoader } from "fumadocs-core/source/client";
 import browserCollections from "collections/browser";
 import { Suspense } from "react";
@@ -57,9 +52,7 @@ function Page() {
 
   return (
     <DocsLayout {...baseOptions()} tree={data.pageTree}>
-      <Suspense>
-        {clientLoader.useContent(data.path)}
-      </Suspense>
+      <Suspense>{clientLoader.useContent(data.path)}</Suspense>
     </DocsLayout>
   );
 }

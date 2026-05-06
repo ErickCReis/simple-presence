@@ -35,11 +35,11 @@ usePresenceCount(tag: string, options: PresenceOptions): number
 
 ### Parameters
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| `tag` | `string` | Identifies the presence channel (e.g. "homepage", "room-42") |
-| `options.appKey` | `string` | Your app key from the dashboard |
-| `options.apiUrl` | `string?` | Custom API URL for self-hosted deployments |
+| Parameter        | Type      | Description                                                  |
+| ---------------- | --------- | ------------------------------------------------------------ |
+| `tag`            | `string`  | Identifies the presence channel (e.g. "homepage", "room-42") |
+| `options.appKey` | `string`  | Your app key from the dashboard                              |
+| `options.apiUrl` | `string?` | Custom API URL for self-hosted deployments                   |
 
 ### Example
 
@@ -91,13 +91,13 @@ usePresence(tag: string, options: PresenceOptions): PresenceState
 
 ### Return value
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `count` | `number` | Current live count (same as usePresenceCount) |
+| Field     | Type              | Description                                     |
+| --------- | ----------------- | ----------------------------------------------- |
+| `count`   | `number`          | Current live count (same as usePresenceCount)   |
 | `history` | `CountSnapshot[]` | Array of recent count snapshots with timestamps |
-| `peak` | `number` | Highest concurrent user count observed |
-| `peakAt` | `Date \| null` | When the peak count was observed |
-| `refresh` | `() => void` | Manually refresh history and stats |
+| `peak`    | `number`          | Highest concurrent user count observed          |
+| `peakAt`  | `Date \| null`    | When the peak count was observed                |
+| `refresh` | `() => void`      | Manually refresh history and stats              |
 
 ### Example
 
@@ -117,15 +117,17 @@ function PresencePanel() {
       </div>
       <div>
         <h3>Peak</h3>
-        <p>{peak} concurrent — {peakAt?.toLocaleString()}</p>
+        <p>
+          {peak} concurrent — {peakAt?.toLocaleString()}
+        </p>
       </div>
       <div>
         <h3>Recent history ({history.length} snapshots)</h3>
         <ul>
           {history.slice(-5).map((snap) => (
             <li key={snap.timestamp}>
-              {new Date(snap.timestamp).toLocaleTimeString()}: {snap.sessions} total
-              ({snap.online} online, {snap.away} away)
+              {new Date(snap.timestamp).toLocaleTimeString()}: {snap.sessions} total ({snap.online}{" "}
+              online, {snap.away} away)
             </li>
           ))}
         </ul>
@@ -175,9 +177,18 @@ function Dashboard() {
   return (
     <table>
       <tbody>
-        <tr><td>Homepage</td><td>{homepage}</td></tr>
-        <tr><td>Pricing</td><td>{pricing}</td></tr>
-        <tr><td>Docs</td><td>{docs}</td></tr>
+        <tr>
+          <td>Homepage</td>
+          <td>{homepage}</td>
+        </tr>
+        <tr>
+          <td>Pricing</td>
+          <td>{pricing}</td>
+        </tr>
+        <tr>
+          <td>Docs</td>
+          <td>{docs}</td>
+        </tr>
       </tbody>
     </table>
   );

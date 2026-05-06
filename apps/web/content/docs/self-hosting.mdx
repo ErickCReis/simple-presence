@@ -6,21 +6,17 @@ description: Deploy your own Simple Presence server on Cloudflare Workers.
 Simple Presence is open source and can be deployed to your own Cloudflare account for full control over data and infrastructure.
 
 <Callout type="info" title="Before you begin">
-  Self-hosting requires a [Cloudflare Workers Paid plan](https://www.cloudflare.com/plans/developer-platform/) ($5/mo) for Durable Objects support. You'll also need [Bun](https://bun.sh) installed locally.
+  Self-hosting requires a [Cloudflare Workers Paid
+  plan](https://www.cloudflare.com/plans/developer-platform/) ($5/mo) for Durable Objects support.
+  You'll also need [Bun](https://bun.sh) installed locally.
 </Callout>
 
 ## Architecture
 
 <Cards>
-  <Card title="Workers">
-    HTTP API, auth, WebSocket upgrade routing
-  </Card>
-  <Card title="Durable Objects">
-    Real-time state, WebSocket management, count aggregation
-  </Card>
-  <Card title="D1 Database">
-    User accounts, app registry, persistent data
-  </Card>
+  <Card title="Workers">HTTP API, auth, WebSocket upgrade routing</Card>
+  <Card title="Durable Objects">Real-time state, WebSocket management, count aggregation</Card>
+  <Card title="D1 Database">User accounts, app registry, persistent data</Card>
 </Cards>
 
 ```ts title="architecture.ts"
@@ -125,10 +121,10 @@ At least one provider should be configured. You can add more by extending the au
 
 The web app (`apps/web`) can be deployed to any static hosting or edge platform. Set these environment variables at build time:
 
-| Variable | Description |
-| --- | --- |
-| `VITE_SERVER_URL` | Your deployed server URL (e.g. https://presence.your-domain.com) |
-| `VITE_DEMO_APP_KEY` | App key for the landing page live demo (optional) |
+| Variable            | Description                                                      |
+| ------------------- | ---------------------------------------------------------------- |
+| `VITE_SERVER_URL`   | Your deployed server URL (e.g. https://presence.your-domain.com) |
+| `VITE_DEMO_APP_KEY` | App key for the landing page live demo (optional)                |
 
 ---
 
@@ -158,5 +154,6 @@ The server also exposes a `/health` endpoint for uptime monitoring.
 4. Deploy: `bun run deploy`
 
 <Callout title="Prefer the hosted version?">
-  The free tier includes 2 apps and 100 concurrent connections — enough for most projects. No infrastructure to manage. [Get started for free →](/dashboard)
+  The free tier includes 2 apps and 100 concurrent connections — enough for most projects. No
+  infrastructure to manage. [Get started for free →](/dashboard)
 </Callout>

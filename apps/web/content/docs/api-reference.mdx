@@ -83,16 +83,16 @@ The SDK communicates with the server over WebSocket using [oRPC](https://orpc.un
 // wss://<apiUrl>/<appKey>?cid=<clientId>
 
 // Subscribe to count updates (server-sent stream)
-presence.on({ tag: string }) // → AsyncIterable<number>
+presence.on({ tag: string }); // → AsyncIterable<number>
 
 // Update visibility status
-presence.update({ tag: string, status: "online" | "away" })
+presence.update({ tag: string, status: "online" | "away" });
 
 // Fetch historical snapshots
-presence.history({ tag: string }) // → CountSnapshot[]
+presence.history({ tag: string }); // → CountSnapshot[]
 
 // Fetch peak stats
-presence.stats({ tag: string }) // → TagPeak
+presence.stats({ tag: string }); // → TagPeak
 ```
 
 ### Connection lifecycle
@@ -123,12 +123,12 @@ interface AppDetail extends AppSummary {
 }
 
 // CRUD operations (requires auth session)
-apps.list()   // → AppSummary[]
-apps.create({ name: string }) // → AppSummary
-apps.delete({ id: string })   // → void
+apps.list(); // → AppSummary[]
+apps.create({ name: string }); // → AppSummary
+apps.delete({ id: string }); // → void
 
 // Live watch stream
-apps.watch({ id: string }) // → AsyncIterable<WatchAppPayload>
+apps.watch({ id: string }); // → AsyncIterable<WatchAppPayload>
 
 interface WatchAppPayload {
   tags: WatchTagStat[];
@@ -157,11 +157,11 @@ interface PresenceEvent {
 
 ### Free tier limits
 
-| Limit | Value |
-| --- | --- |
-| Apps per user | 2 |
-| Tags per app | 10 |
-| Concurrent connections per app | 100 |
+| Limit                          | Value |
+| ------------------------------ | ----- |
+| Apps per user                  | 2     |
+| Tags per app                   | 10    |
+| Concurrent connections per app | 100   |
 
 ---
 
@@ -178,8 +178,8 @@ The SDK handles most errors internally (reconnection, network failures). Key sce
 
 ## Package exports
 
-| Package | Exports |
-| --- | --- |
-| `@simple-presence/core` | `SimplePresence`, `initPresence`, types |
-| `@simple-presence/react` | `usePresenceCount`, `usePresence`, types |
+| Package                     | Exports                                        |
+| --------------------------- | ---------------------------------------------- |
+| `@simple-presence/core`     | `SimplePresence`, `initPresence`, types        |
+| `@simple-presence/react`    | `usePresenceCount`, `usePresence`, types       |
 | `@simple-presence/solid-js` | `createPresenceCount`, `createPresence`, types |

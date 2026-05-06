@@ -38,9 +38,9 @@ createPresenceCount(
 
 ### Parameters
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| `tag` | `Accessor<string>` | Accessor returning the channel tag |
+| Parameter | Type                        | Description                              |
+| --------- | --------------------------- | ---------------------------------------- |
+| `tag`     | `Accessor<string>`          | Accessor returning the channel tag       |
 | `options` | `Accessor<PresenceOptions>` | Accessor returning `{ appKey, apiUrl? }` |
 
 ### Example
@@ -51,7 +51,7 @@ import { createPresenceCount } from "@simple-presence/solid-js";
 function OnlineUsers() {
   const count = createPresenceCount(
     () => "homepage",
-    () => ({ appKey: "your-app-key" })
+    () => ({ appKey: "your-app-key" }),
   );
 
   return (
@@ -80,13 +80,13 @@ createPresence(
 
 ### Return value
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `count` | `Accessor<number>` | Reactive live count |
+| Field     | Type                        | Description                       |
+| --------- | --------------------------- | --------------------------------- |
+| `count`   | `Accessor<number>`          | Reactive live count               |
 | `history` | `Accessor<CountSnapshot[]>` | Reactive array of count snapshots |
-| `peak` | `Accessor<number>` | Reactive peak concurrent count |
-| `peakAt` | `Accessor<Date \| null>` | When the peak was observed |
-| `refresh` | `() => void` | Manually re-fetch stats |
+| `peak`    | `Accessor<number>`          | Reactive peak concurrent count    |
+| `peakAt`  | `Accessor<Date \| null>`    | When the peak was observed        |
+| `refresh` | `() => void`                | Manually re-fetch stats           |
 
 ### Example
 
@@ -97,7 +97,7 @@ import { For } from "solid-js";
 function PresencePanel() {
   const presence = createPresence(
     () => "dashboard",
-    () => ({ appKey: "your-app-key" })
+    () => ({ appKey: "your-app-key" }),
   );
 
   return (
@@ -109,8 +109,7 @@ function PresencePanel() {
       <div>
         <h3>Peak</h3>
         <p>
-          {presence.peak()} concurrent —{" "}
-          {presence.peakAt()?.toLocaleString()}
+          {presence.peak()} concurrent — {presence.peakAt()?.toLocaleString()}
         </p>
       </div>
       <div>
@@ -146,7 +145,7 @@ function RoomPresence() {
 
   const count = createPresenceCount(
     () => `room-${params.roomId}`,
-    () => ({ appKey: "your-app-key" })
+    () => ({ appKey: "your-app-key" }),
   );
 
   return <p>{count()} in this room</p>;

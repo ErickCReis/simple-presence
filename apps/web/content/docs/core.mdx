@@ -33,12 +33,12 @@ new SimplePresence(config: PresenceConfig)
 
 ### Config
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `tag` | `string` | Presence channel identifier |
-| `appKey` | `string` | Your application key from the dashboard |
-| `apiUrl` | `string?` | Custom server URL (defaults to hosted service) |
-| `onCountChange` | `(count: number) => void` | Callback fired on every count update |
+| Field           | Type                      | Description                                    |
+| --------------- | ------------------------- | ---------------------------------------------- |
+| `tag`           | `string`                  | Presence channel identifier                    |
+| `appKey`        | `string`                  | Your application key from the dashboard        |
+| `apiUrl`        | `string?`                 | Custom server URL (defaults to hosted service) |
+| `onCountChange` | `(count: number) => void` | Callback fired on every count update           |
 
 ### Basic example
 
@@ -85,14 +85,14 @@ presence.destroy();
 
 ## Instance methods
 
-| Method | Returns | Description |
-| --- | --- | --- |
-| `getCount()` | `number` | Current live count (synchronous) |
-| `getStatus()` | `"online" \| "away"` | Current visibility status of this client |
-| `getClientId()` | `string` | Stable anonymous ID for this browser |
-| `getHistory()` | `Promise<CountSnapshot[]>` | Fetch historical count snapshots |
-| `getStats()` | `Promise<TagPeak>` | Fetch peak concurrent count and timestamp |
-| `destroy()` | `void` | Release the subscription and close the connection if unused |
+| Method          | Returns                    | Description                                                 |
+| --------------- | -------------------------- | ----------------------------------------------------------- |
+| `getCount()`    | `number`                   | Current live count (synchronous)                            |
+| `getStatus()`   | `"online" \| "away"`       | Current visibility status of this client                    |
+| `getClientId()` | `string`                   | Stable anonymous ID for this browser                        |
+| `getHistory()`  | `Promise<CountSnapshot[]>` | Fetch historical count snapshots                            |
+| `getStats()`    | `Promise<TagPeak>`         | Fetch peak concurrent count and timestamp                   |
+| `destroy()`     | `void`                     | Release the subscription and close the connection if unused |
 
 ### History & Stats
 
@@ -158,7 +158,9 @@ export function usePresenceCount(tag: string, appKey: string) {
     presence = new SimplePresence({
       tag,
       appKey,
-      onCountChange: (n) => { count.value = n; },
+      onCountChange: (n) => {
+        count.value = n;
+      },
     });
     count.value = presence.getCount();
   });
@@ -184,14 +186,20 @@ export function createPresenceCount(tag: string, appKey: string) {
     presence = new SimplePresence({
       tag,
       appKey,
-      onCountChange: (n) => { count = n; },
+      onCountChange: (n) => {
+        count = n;
+      },
     });
     count = presence.getCount();
 
     return () => presence?.destroy();
   });
 
-  return { get count() { return count; } };
+  return {
+    get count() {
+      return count;
+    },
+  };
 }
 ```
 
@@ -199,7 +207,7 @@ export function createPresenceCount(tag: string, appKey: string) {
 
 ## Connection management
 
-Under the hood, the core SDK deduplicates connections. Multiple `SimplePresence` instances with the same `(apiUrl, appKey, tag)` tuple share a single WebSocket. The connection is only closed when *all* instances using it have been destroyed.
+Under the hood, the core SDK deduplicates connections. Multiple `SimplePresence` instances with the same `(apiUrl, appKey, tag)` tuple share a single WebSocket. The connection is only closed when _all_ instances using it have been destroyed.
 
 ### How deduplication works
 

@@ -66,7 +66,7 @@ function LandingPage() {
               variant="ghost"
               size="sm"
               className="text-gray-400 hover:text-white"
-              render={<Link to="/docs" />}
+              render={<Link to="/docs/$" params={{ _splat: "" }} />}
               nativeButton={false}
             >
               Documentation
@@ -124,7 +124,7 @@ function LandingPage() {
               variant="outline"
               size="lg"
               className="border-white/15 text-gray-300 hover:bg-white/5 hover:text-white"
-              render={<Link to="/docs" />}
+              render={<Link to="/docs/$" params={{ _splat: "" }} />}
               nativeButton={false}
             >
               View Documentation
@@ -229,7 +229,11 @@ function LandingPage() {
             © {new Date().getFullYear()} Simple Presence
           </span>
           <div className="flex gap-6 text-sm text-gray-500">
-            <Link to="/docs" className="transition-colors hover:text-gray-300">
+            <Link
+              to="/docs/$"
+              params={{ _splat: "" }}
+              className="transition-colors hover:text-gray-300"
+            >
               Documentation
             </Link>
             <a href="/#" className="transition-colors hover:text-gray-300">
