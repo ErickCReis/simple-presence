@@ -1,5 +1,5 @@
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { createRootRoute, HeadContent, Link, Outlet, Scripts } from "@tanstack/react-router";
+import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { RootProvider } from "fumadocs-ui/provider/tanstack";
 import { Toaster } from "@/components/ui/sonner";
@@ -40,20 +40,13 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body>
-        <RootProvider>
+        <RootProvider search={{ enabled: false }}>
           <Outlet />
           <Toaster richColors />
         </RootProvider>
         <TanStackRouterDevtools position="bottom-left" />
         <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
         <Scripts />
-        {/* Prerender links */}
-        <div className="hidden">
-          <Link to="/" />
-          <Link to="/sign-in" />
-          <Link to="/sign-up" />
-          <Link to="/dashboard" />
-        </div>
       </body>
     </html>
   );
