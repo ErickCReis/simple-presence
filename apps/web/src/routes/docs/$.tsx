@@ -1,58 +1,13 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import { DocsLayout } from "fumadocs-ui/layouts/docs";
-import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/layouts/docs/page";
-import { useFumadocsLoader } from "fumadocs-core/source/client";
-import browserCollections from "collections/browser";
-import { Suspense } from "react";
-import { useMDXComponents } from "@/components/mdx";
-import { baseOptions } from "@/lib/docs-layout";
-import { source } from "@/lib/source";
+import { createFileRoute } from "@tanstack/react-router";
+import { DocsRouteContent, loadDocsRoute, normalizeDocsSlugs } from "@/routes/docs/-docs-page";
 
 export const Route = createFileRoute("/docs/$")({
   component: Page,
   loader: async ({ params }) => {
-    const slugs = params._splat?.split("/") ?? [];
-    const data = await serverLoader({ data: slugs });
-    await clientLoader.preload(data.path);
-    return data;
-  },
-});
-
-const serverLoader = createServerFn({
-  method: "GET",
-})
-  .inputValidator((slugs: string[]) => slugs)
-  .handler(async ({ data: slugs }) => {
-    const page = source.getPage(slugs);
-    if (!page) throw notFound();
-
-    return {
-      path: page.path,
-      pageTree: await source.serializePageTree(source.getPageTree()),
-    };
-  });
-
-const clientLoader = browserCollections.docs.createClientLoader({
-  component({ toc, frontmatter, default: MDX }, _props: undefined) {
-    return (
-      <DocsPage toc={toc}>
-        <DocsTitle>{frontmatter.title}</DocsTitle>
-        <DocsDescription>{frontmatter.description}</DocsDescription>
-        <DocsBody>
-          <MDX components={useMDXComponents()} />
-        </DocsBody>
-      </DocsPage>
-    );
+    return await loadDocsRoute(normalizeDocsSlugs(params._splat));
   },
 });
 
 function Page() {
-  const data = useFumadocsLoader(Route.useLoaderData());
-
-  return (
-    <DocsLayout {...baseOptions()} tree={data.pageTree}>
-      <Suspense>{clientLoader.useContent(data.path)}</Suspense>
-    </DocsLayout>
-  );
+  return <DocsRouteContent data={Route.useLoaderData()} />;
 }

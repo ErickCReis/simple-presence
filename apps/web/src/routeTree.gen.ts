@@ -10,17 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
+import { Route as DocsIndexRouteImport } from './routes/docs/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as LandingIndexRouteImport } from './routes/_landing/index'
 import { Route as DocsSplatRouteImport } from './routes/docs/$'
 import { Route as DashboardAppIdRouteImport } from './routes/dashboard/$appId'
-import { Route as ApiSearchRouteImport } from './routes/api/search'
 import { Route as LoginSignUpRouteImport } from './routes/_login/sign-up'
 import { Route as LoginSignInRouteImport } from './routes/_login/sign-in'
 
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsIndexRoute = DocsIndexRouteImport.update({
+  id: '/docs/',
+  path: '/docs/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -43,11 +48,6 @@ const DashboardAppIdRoute = DashboardAppIdRouteImport.update({
   path: '/$appId',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
-const ApiSearchRoute = ApiSearchRouteImport.update({
-  id: '/api/search',
-  path: '/api/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginSignUpRoute = LoginSignUpRouteImport.update({
   id: '/_login/sign-up',
   path: '/sign-up',
@@ -63,31 +63,31 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/sign-in': typeof LoginSignInRoute
   '/sign-up': typeof LoginSignUpRoute
-  '/api/search': typeof ApiSearchRoute
   '/dashboard/$appId': typeof DashboardAppIdRoute
   '/docs/$': typeof DocsSplatRoute
   '/': typeof LandingIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/docs/': typeof DocsIndexRoute
 }
 export interface FileRoutesByTo {
   '/sign-in': typeof LoginSignInRoute
   '/sign-up': typeof LoginSignUpRoute
-  '/api/search': typeof ApiSearchRoute
   '/dashboard/$appId': typeof DashboardAppIdRoute
   '/docs/$': typeof DocsSplatRoute
   '/': typeof LandingIndexRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/docs': typeof DocsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/_login/sign-in': typeof LoginSignInRoute
   '/_login/sign-up': typeof LoginSignUpRoute
-  '/api/search': typeof ApiSearchRoute
   '/dashboard/$appId': typeof DashboardAppIdRoute
   '/docs/$': typeof DocsSplatRoute
   '/_landing/': typeof LandingIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/docs/': typeof DocsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -95,39 +95,39 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/sign-in'
     | '/sign-up'
-    | '/api/search'
     | '/dashboard/$appId'
     | '/docs/$'
     | '/'
     | '/dashboard/'
+    | '/docs/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/sign-in'
     | '/sign-up'
-    | '/api/search'
     | '/dashboard/$appId'
     | '/docs/$'
     | '/'
     | '/dashboard'
+    | '/docs'
   id:
     | '__root__'
     | '/dashboard'
     | '/_login/sign-in'
     | '/_login/sign-up'
-    | '/api/search'
     | '/dashboard/$appId'
     | '/docs/$'
     | '/_landing/'
     | '/dashboard/'
+    | '/docs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
   LoginSignInRoute: typeof LoginSignInRoute
   LoginSignUpRoute: typeof LoginSignUpRoute
-  ApiSearchRoute: typeof ApiSearchRoute
   DocsSplatRoute: typeof DocsSplatRoute
   LandingIndexRoute: typeof LandingIndexRoute
+  DocsIndexRoute: typeof DocsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -137,6 +137,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs/': {
+      id: '/docs/'
+      path: '/docs'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof DocsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -166,13 +173,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/$appId'
       preLoaderRoute: typeof DashboardAppIdRouteImport
       parentRoute: typeof DashboardRouteRoute
-    }
-    '/api/search': {
-      id: '/api/search'
-      path: '/api/search'
-      fullPath: '/api/search'
-      preLoaderRoute: typeof ApiSearchRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/_login/sign-up': {
       id: '/_login/sign-up'
@@ -209,9 +209,9 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
   LoginSignInRoute: LoginSignInRoute,
   LoginSignUpRoute: LoginSignUpRoute,
-  ApiSearchRoute: ApiSearchRoute,
   DocsSplatRoute: DocsSplatRoute,
   LandingIndexRoute: LandingIndexRoute,
+  DocsIndexRoute: DocsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
