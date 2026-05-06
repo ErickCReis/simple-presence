@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
@@ -16,4 +14,4 @@ jobs:
           bun-version: "1.3.13"
       - run: bun install --frozen-lockfile
       - run: bun run build
-      - run: bun run check
+      - run: bun run --bun check

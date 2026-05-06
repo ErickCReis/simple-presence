@@ -26,6 +26,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - run: bun install --frozen-lockfile
       - run: bun run --bun --filter './packages/*' build
+      - run: bun run --bun check
       - name: Publish @simple-presence/core
         working-directory: packages/core
         run: npm publish --provenance --access public
