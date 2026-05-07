@@ -1,6 +1,6 @@
 {
   "name": "@simple-presence/solid-js",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "SolidJS primitives for real-time user presence tracking",
   "keywords": [
     "online-users",
@@ -40,7 +40,8 @@
   "scripts": {
     "build": "tsdown --platform browser src/index.tsx",
     "dev": "tsdown --watch --platform browser src/index.tsx",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun pm pack --filename=packages/solid-js/solid-js.tgz"
   },
   "dependencies": {
     "@simple-presence/core": "workspace:*"

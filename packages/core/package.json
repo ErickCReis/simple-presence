@@ -1,6 +1,6 @@
 {
   "name": "@simple-presence/core",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Real-time user presence tracking for any JavaScript application",
   "keywords": [
     "live-count",
@@ -40,7 +40,8 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun pm pack --filename=packages/core/core.tgz"
   },
   "dependencies": {
     "@orpc/client": "^1.14.1",

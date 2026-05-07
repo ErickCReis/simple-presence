@@ -1,6 +1,6 @@
 {
   "name": "@simple-presence/react",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "React hooks for real-time user presence tracking",
   "keywords": [
     "hooks",
@@ -40,7 +40,8 @@
   "scripts": {
     "build": "tsdown --platform browser src/index.tsx",
     "dev": "tsdown --watch --platform browser src/index.tsx",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun pm pack --filename=packages/react/react.tgz"
   },
   "dependencies": {
     "@simple-presence/core": "workspace:*"
