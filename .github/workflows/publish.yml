@@ -29,10 +29,16 @@ jobs:
       - run: bun run --bun check
       - name: Publish @simple-presence/core
         working-directory: packages/core
-        run: bun pm pack --quiet | npm publish --provenance --access public
+        run: |
+          bun pm pack --filename=packages/core/core.tgz
+          npm publish core.tgz --provenance --access public
       - name: Publish @simple-presence/react
         working-directory: packages/react
-        run: bun pm pack --quiet | npm publish --provenance --access public
+        run: |
+          bun pm pack --filename=packages/react/react.tgz
+          npm publish react.tgz --provenance --access public
       - name: Publish @simple-presence/solid-js
         working-directory: packages/solid-js
-        run: bun pm pack --quiet | npm publish --provenance --access public
+        run: |
+          bun pm pack --filename=packages/solid-js/solid-js.tgz
+          npm publish solid-js.tgz --provenance --access public

@@ -1,6 +1,6 @@
 {
   "name": "@simple-presence/solid-js",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "SolidJS primitives for real-time user presence tracking",
   "keywords": [
     "online-users",
