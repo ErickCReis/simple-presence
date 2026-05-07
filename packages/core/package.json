@@ -1,6 +1,6 @@
 {
   "name": "@simple-presence/core",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Real-time user presence tracking for any JavaScript application",
   "keywords": [
     "live-count",
@@ -38,16 +38,16 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsdown --platform browser",
-    "dev": "tsdown --watch --platform browser",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@orpc/client": "^1.14.1",
-    "@simple-presence/contracts": "workspace:*",
     "partysocket": "^1.1.18"
   },
   "devDependencies": {
+    "@simple-presence/contracts": "workspace:*",
     "tsdown": "^0.21.10",
     "typescript": "^6.0.3"
   }
