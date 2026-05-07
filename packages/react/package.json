@@ -40,8 +40,7 @@
   "scripts": {
     "build": "tsdown --platform browser src/index.tsx",
     "dev": "tsdown --watch --platform browser src/index.tsx",
-    "typecheck": "tsc --noEmit",
-    "prepublishOnly": "bun pm pack --filename=packages/react/react.tgz"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@simple-presence/core": "workspace:*"

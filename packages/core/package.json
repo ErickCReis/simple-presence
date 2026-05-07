@@ -40,8 +40,7 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "typecheck": "tsc --noEmit",
-    "prepublishOnly": "bun pm pack --filename=packages/core/core.tgz"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@orpc/client": "^1.14.1",
